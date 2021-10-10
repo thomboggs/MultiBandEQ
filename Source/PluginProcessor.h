@@ -30,20 +30,7 @@ namespace FilterInfo
         Peak
     };
 
-    static std::map<FilterType, juce::String> FilterTypeMap
-    {
-        {FilterType::FirstOrderLowPass, "FirstOrderLowPass"},
-        {FilterType::FirstOrderHighPass, "FirstOrderHighPass"},
-        {FilterType::FirstOrderAllPass, "FirstOrderAllPass"},
-        {FilterType::LowPass, "LowPass"},
-        {FilterType::HighPass, "HighPass"},
-        {FilterType::BandPass, "BandPass"},
-        {FilterType::Notch, "Notch"},
-        {FilterType::AllPass, "AllPass"},
-        {FilterType::LowShelf, "LowShelf"},
-        {FilterType::HighShelf, "HighShelf"},
-        {FilterType::Peak, "Peak"},
-    };
+    const std::map<FilterType, juce::String> getFilterTypeMap();
 }
 
 

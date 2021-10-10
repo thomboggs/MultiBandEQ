@@ -11,6 +11,27 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
+const std::map<FilterInfo::FilterType, juce::String> FilterInfo::getFilterTypeMap()
+{
+    static std::map<FilterInfo::FilterType, juce::String> FilterTypeMap
+    {
+        {FilterInfo::FilterType::FirstOrderLowPass, "FirstOrderLowPass"},
+        {FilterInfo::FilterType::FirstOrderHighPass, "FirstOrderHighPass"},
+        {FilterInfo::FilterType::FirstOrderAllPass, "FirstOrderAllPass"},
+        {FilterInfo::FilterType::LowPass, "LowPass"},
+        {FilterInfo::FilterType::HighPass, "HighPass"},
+        {FilterInfo::FilterType::BandPass, "BandPass"},
+        {FilterInfo::FilterType::Notch, "Notch"},
+        {FilterInfo::FilterType::AllPass, "AllPass"},
+        {FilterInfo::FilterType::LowShelf, "LowShelf"},
+        {FilterInfo::FilterType::HighShelf, "HighShelf"},
+        {FilterInfo::FilterType::Peak, "Peak"},
+    };
+    
+    return FilterTypeMap;
+};
+
 //==============================================================================
 Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -150,12 +171,12 @@ void Pfmcpp_project10AudioProcessor::processBlock (AudioBuffer<float>& buffer, M
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
+//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+//    {
+//        auto* channelData = buffer.getWritePointer (channel);
+//
+//        // ..do something to the data...
+//    }
 }
 
 //==============================================================================
