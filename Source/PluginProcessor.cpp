@@ -12,7 +12,7 @@
 #include "PluginEditor.h"
 
 
-const std::map<FilterInfo::FilterType, juce::String> FilterInfo::getFilterTypeMap()
+const std::map<FilterInfo::FilterType, juce::String>& FilterInfo::getFilterTypeMap()
 {
     static std::map<FilterInfo::FilterType, juce::String> FilterTypeMap
     {
