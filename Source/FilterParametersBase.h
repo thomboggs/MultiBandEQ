@@ -9,6 +9,7 @@
 */
 
 #pragma once
+#include "../JuceLibraryCode/JuceHeader.h"
 
 #include "FilterInfo.h"
 
@@ -33,4 +34,8 @@ struct HighCutLowCutParameters : FilterParametersBase
     int order { 1 };
     bool isLowcut { true };
 };
-
+// Free Functions to create Parameter Names
+String getParamNameGain(int filterNum);
+String getParamNameQuality(int filterNum);
+String getParamNameFreq(int filterNum);
+String getParamNameType(int filterNum);
