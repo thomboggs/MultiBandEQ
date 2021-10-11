@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "FilterInfo.h"
+
 
 struct FilterParametersBase
 {
@@ -18,3 +20,17 @@ struct FilterParametersBase
     float quality { 1.0 };
     double sampleRate { 0 };
 };
+
+struct FilterParameters : FilterParametersBase
+{
+    FilterInfo::FilterType filterType { FilterInfo::FilterType::LowPass };
+    
+    float gainInDb { 0 };
+};
+
+struct HighCutLowCutParameters : FilterParametersBase
+{
+    int order { 1 };
+    bool isLowcut { true };
+};
+
