@@ -10,6 +10,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "FilterHelperFunctions.h"
 
 
 
@@ -190,20 +191,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
-    const int numFilters = 1;
+    const int numFilters = 4;
     
     for ( int i = 0; i < numFilters; ++i)
     {
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getParamNameGain(i),
-                                                               getParamNameGain(i),
+        layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(i),
+                                                              getBypassParamName(i),
+                                                              false));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(i),
+                                                               getGainParamName(i),
                                                                juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
                                                                    0.f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getParamNameQuality(i),
-                                                               getParamNameQuality(i),
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(i),
+                                                               getQualityParamName(i),
                                                                juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
                                                                    1.f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getParamNameFreq(i),
-                                                               getParamNameFreq(i),
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(i),
+                                                               getFreqParamName(i),
                                                                juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
                                                                    500.f));
         
@@ -218,8 +223,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
             it++;
         }
         
-        layout.add(std::make_unique<juce::AudioParameterChoice>(getParamNameType(i),
-                                                                getParamNameType(i),
+        layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(i),
+                                                                getTypeParamName(i),
                                                                 stringArray,
                                                                 0));
     }

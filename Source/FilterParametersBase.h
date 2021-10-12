@@ -35,8 +35,4 @@ struct HighCutLowCutParameters : FilterParametersBase
     bool isLowcut { true };
 };
 
-// Free Functions to create Parameter Names
-String getParamNameGain(int filterNum);
-String getParamNameQuality(int filterNum);
-String getParamNameFreq(int filterNum);
-String getParamNameType(int filterNum);
+
