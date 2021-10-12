@@ -34,8 +34,8 @@ Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
     fParams.sampleRate = 44100;
     hclcParams.sampleRate = 44100;
     
-    auto filterCoeffs = CoefficientsMaker::calcFilterCoefficients(fParams);
-    auto hclcCoeffs = CoefficientsMaker::calcCutCoefficients(hclcParams);
+    auto filterCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(fParams);
+    auto hclcCoeffs = CoefficientsMaker<float>::calcCutCoefficients(hclcParams);
     
     
 }
