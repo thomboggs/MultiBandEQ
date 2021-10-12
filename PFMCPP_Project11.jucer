@@ -8,8 +8,6 @@
             file="Source/FilterHelperFunctions.cpp"/>
       <FILE id="Fr0IwB" name="FilterHelperFunctions.h" compile="0" resource="0"
             file="Source/FilterHelperFunctions.h"/>
-      <FILE id="v7ihgw" name="FilterParametersBase.cpp" compile="1" resource="0"
-            file="Source/FilterParametersBase.cpp"/>
       <FILE id="tvbhUR" name="FilterParametersBase.h" compile="0" resource="0"
             file="Source/FilterParametersBase.h"/>
       <FILE id="JbSee6" name="FilterInfo.cpp" compile="1" resource="0" file="Source/FilterInfo.cpp"/>

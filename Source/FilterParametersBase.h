@@ -9,8 +9,6 @@
 */
 
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
-
 #include "FilterInfo.h"
 
 
