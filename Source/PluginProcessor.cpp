@@ -11,6 +11,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "FilterHelperFunctions.h"
+#include "CoefficientsMaker.h"
 
 
 
@@ -27,6 +28,16 @@ Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
                        )
 #endif
 {
+    FilterParameters fParams;
+    HighCutLowCutParameters hclcParams;
+        
+    fParams.sampleRate = 44100;
+    hclcParams.sampleRate = 44100;
+    
+    auto filterCoeffs = CoefficientsMaker::calcFilterCoefficients(fParams);
+    auto hclcCoeffs = CoefficientsMaker::calcCutCoefficients(hclcParams);
+    
+    
 }
 
 Pfmcpp_project10AudioProcessor::~Pfmcpp_project10AudioProcessor()
