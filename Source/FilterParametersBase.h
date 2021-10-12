@@ -9,7 +9,6 @@
 */
 
 #pragma once
-
 #include "FilterInfo.h"
 
 
@@ -33,4 +32,5 @@ struct HighCutLowCutParameters : FilterParametersBase
     int order { 1 };
     bool isLowcut { true };
 };
+
 

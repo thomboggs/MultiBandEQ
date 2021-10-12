@@ -10,6 +10,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "FilterHelperFunctions.h"
 
 
 
@@ -168,7 +169,8 @@ bool Pfmcpp_project10AudioProcessor::hasEditor() const
 
 AudioProcessorEditor* Pfmcpp_project10AudioProcessor::createEditor()
 {
-    return new Pfmcpp_project10AudioProcessorEditor (*this);
+//    return new Pfmcpp_project10AudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -183,6 +185,51 @@ void Pfmcpp_project10AudioProcessor::setStateInformation (const void* data, int 
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcessor::createParameterLayout ()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    
+    const int numFilters = 4;
+    
+    for ( int i = 0; i < numFilters; ++i)
+    {
+        layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(i),
+                                                              getBypassParamName(i),
+                                                              false));
+        
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(i),
+                                                               getGainParamName(i),
+                                                               juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+                                                                   0.f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(i),
+                                                               getQualityParamName(i),
+                                                               juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+                                                                   1.f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(i),
+                                                               getFreqParamName(i),
+                                                               juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+                                                                   500.f));
+        
+        StringArray stringArray;
+        auto filterTypeMap = FilterInfo::getFilterTypeMap();
+        auto it = filterTypeMap.begin();
+        
+        while (it != filterTypeMap.end())
+        {
+//            DBG(it->second);
+            stringArray.add(it->second);
+            it++;
+        }
+        
+        layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(i),
+                                                                getTypeParamName(i),
+                                                                stringArray,
+                                                                0));
+    }
+    
+    return layout;
 }
 
 //==============================================================================
