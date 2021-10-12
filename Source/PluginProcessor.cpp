@@ -28,16 +28,6 @@ Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
                        )
 #endif
 {
-    FilterParameters fParams;
-    HighCutLowCutParameters hclcParams;
-        
-    fParams.sampleRate = 44100;
-    hclcParams.sampleRate = 44100;
-    
-    auto filterCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(fParams);
-    auto hclcCoeffs = CoefficientsMaker<float>::calcCutCoefficients(hclcParams);
-    
-    
 }
 
 Pfmcpp_project10AudioProcessor::~Pfmcpp_project10AudioProcessor()
@@ -109,8 +99,28 @@ void Pfmcpp_project10AudioProcessor::changeProgramName (int index, const String&
 //==============================================================================
 void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.sampleRate = sampleRate;
+    spec.numChannels = 1;
+    
+    // prepare FilterParams
+    filterParams.sampleRate = sampleRate;
+    
+    // Update filterParams according to apvts to test
+    filterParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
+    filterParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
+    filterParams.filterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+    filterParams.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
+    
+    leftChain.prepare(spec);
+    rightChain.prepare(spec);
+    
+    auto& leftCoeffs = leftChain.get<0>();
+    auto& rightCoeffs = rightChain.get<0>();
+    
+    leftCoeffs = CoefficientsMaker::calcFilterCoefficients(filterParams);
+    rightCoeffs = CoefficientsMaker::calcFilterCoefficients(filterParams);
 }
 
 void Pfmcpp_project10AudioProcessor::releaseResources()
@@ -157,19 +167,30 @@ void Pfmcpp_project10AudioProcessor::processBlock (AudioBuffer<float>& buffer, M
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-//    {
-//        auto* channelData = buffer.getWritePointer (channel);
-//
-//        // ..do something to the data...
-//    }
+    
+    // Update filterParams according to apvts to test
+    filterParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
+    filterParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
+    filterParams.filterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+    filterParams.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
+    
+    auto& leftCoeffs = leftChain.get<0>();
+    auto& rightCoeffs = rightChain.get<0>();
+    
+    leftCoeffs = CoefficientsMaker::calcFilterCoefficients(filterParams);
+    rightCoeffs = CoefficientsMaker::calcFilterCoefficients(filterParams);
+    
+    // Process
+    dsp::AudioBlock<float> block(buffer);
+    
+    auto leftBlock = block.getSingleChannelBlock(0);
+    auto rightBlock = block.getSingleChannelBlock(1);
+    
+    dsp::ProcessContextReplacing<float> leftContext (leftBlock);
+    dsp::ProcessContextReplacing<float> rightContext (rightBlock);
+    
+    leftChain.process(leftContext);
+    rightChain.process(rightContext);
 }
 
 //==============================================================================
@@ -202,7 +223,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
-    const int numFilters = 4;
+    const int numFilters = 1;
     
     for ( int i = 0; i < numFilters; ++i)
     {

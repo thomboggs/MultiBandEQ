@@ -60,6 +60,15 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
+    
+    FilterParameters filterParams;
+    
+    using Filter = juce::dsp::IIR::Filter<float>;
+    using singleFilterChain = juce::dsp::ProcessorChain<Filter>;
+    
+    singleFilterChain leftChain, rightChain;
+    
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
 };
