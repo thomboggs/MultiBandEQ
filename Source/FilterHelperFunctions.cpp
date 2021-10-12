@@ -11,7 +11,7 @@
 #include "FilterHelperFunctions.h"
 
 
-String getParamPrefix(int filterNum, String paramType)
+String getParamPrefix(int filterNum, const String& paramType)
 {
     String str;
     
