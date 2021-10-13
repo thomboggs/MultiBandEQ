@@ -123,7 +123,7 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     highCutLowCutParams.order = 1;
     highCutLowCutParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
     
-    old_highCutLowCutParams = highCutLowCutParams;
+    oldCutParams = highCutLowCutParams;
     
     // Update filterParams according to apvts to test
     filterParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
@@ -132,7 +132,7 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     filterParams.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
     filterParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
     
-    old_filterParams = filterParams;
+    oldFilterParams = filterParams;
     
     if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
     {
@@ -208,9 +208,9 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         highCutLowCutParams.order = 1;
         highCutLowCutParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
         
-        if (highCutLowCutParams.isEqual(old_highCutLowCutParams))
+        if (highCutLowCutParams.isEqual(oldCutParams))
         {
-            old_highCutLowCutParams = highCutLowCutParams;
+            oldCutParams = highCutLowCutParams;
             
             auto& leftCoeffs = leftChain.get<0>();
             auto& rightCoeffs = rightChain.get<0>();
@@ -228,9 +228,9 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         filterParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
         // check if anything has changed
         // if changed, calc new Coeffs
-        if (filterParams.isEqual(old_filterParams))
+        if (filterParams.isEqual(oldFilterParams))
         {
-            old_filterParams = filterParams;
+            oldFilterParams = filterParams;
             
             auto& leftCoeffs = leftChain.get<0>();
             auto& rightCoeffs = rightChain.get<0>();

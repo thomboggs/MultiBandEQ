@@ -61,8 +61,8 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
-    HighCutLowCutParameters highCutLowCutParams, old_highCutLowCutParams;
-    FilterParameters filterParams, old_filterParams;
+    HighCutLowCutParameters highCutLowCutParams, oldCutParams;
+    FilterParameters filterParams, oldFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using singleFilterChain = juce::dsp::ProcessorChain<Filter>;
