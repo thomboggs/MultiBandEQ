@@ -17,11 +17,14 @@ template <typename FloatType>
 struct CoefficientsMaker
 {
     
-    using Coefficients = typename dsp::IIR::Filter<FloatType>::CoefficientsPtr;
-    using IIRCoeffs = dsp::IIR::Coefficients<FloatType>;
+    using Coefficients = typename juce::dsp::IIR::Filter<FloatType>::CoefficientsPtr;
+    using IIRCoeffs = juce::dsp::IIR::Coefficients<FloatType>;
     
     static Coefficients calcCoefficientsHelper (const FilterInfo::FilterType& filterType, const float& freq, const float& quality, const float& gain, const double& sampleRate)
     {
+        
+        auto gainFactor = std::pow(10, (gain / 20.f));
+        
         switch (filterType)
         {
             case FilterInfo::FirstOrderLowPass:
@@ -41,11 +44,11 @@ struct CoefficientsMaker
             case FilterInfo::AllPass:
                 return IIRCoeffs::makeAllPass(sampleRate, freq, quality);
             case FilterInfo::LowShelf:
-                return IIRCoeffs::makeLowShelf(sampleRate, freq, quality, gain);
+                return IIRCoeffs::makeLowShelf(sampleRate, freq, quality, gainFactor);
             case FilterInfo::HighShelf:
-                return IIRCoeffs::makeHighShelf(sampleRate, freq, quality, gain);
+                return IIRCoeffs::makeHighShelf(sampleRate, freq, quality, gainFactor);
             case FilterInfo::Peak:
-                return IIRCoeffs::makePeakFilter(sampleRate, freq, quality, gain);
+                return IIRCoeffs::makePeakFilter(sampleRate, freq, quality, gainFactor);
         };
     }
     
@@ -54,17 +57,12 @@ struct CoefficientsMaker
         return calcCoefficientsHelper(filterParams.filterType, filterParams.frequency, filterParams.quality, filterParams.gainInDb, filterParams.sampleRate);
     }
     
-    static ReferenceCountedArray<IIRCoeffs> calcCutCoefficients (const HighCutLowCutParameters& cutParams)
+    static juce::ReferenceCountedArray<IIRCoeffs> calcCutCoefficients (const HighCutLowCutParameters& cutParams)
     {
         if (cutParams.isLowcut)
-            return dsp::FilterDesign<FloatType>::designIIRLowpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
+            return juce::dsp::FilterDesign<FloatType>::designIIRLowpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
         
-        return dsp::FilterDesign<FloatType>::designIIRHighpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
-
+        return juce::dsp::FilterDesign<FloatType>::designIIRHighpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
     }
-    
-    
-    
-    
 };
 

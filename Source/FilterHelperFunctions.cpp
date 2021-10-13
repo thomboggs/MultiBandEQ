@@ -11,9 +11,9 @@
 #include "FilterHelperFunctions.h"
 
 
-String getParamPrefix(int filterNum, const String& paramType)
+juce::String getParamPrefix(int filterNum, const juce::String& paramType)
 {
-    String str;
+    juce::String str;
     
     str << "Filter_";
     str << filterNum;
@@ -23,27 +23,27 @@ String getParamPrefix(int filterNum, const String& paramType)
 }
 
 
-String getGainParamName(int filterNum)
+juce::String getGainParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Gain");
 }
 
-String getQualityParamName(int filterNum)
+juce::String getQualityParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Quality");
 }
 
-String getFreqParamName(int filterNum)
+juce::String getFreqParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Freq");
 }
 
-String getTypeParamName(int filterNum)
+juce::String getTypeParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Type");
 }
 
-String getBypassParamName(int filterNum)
+juce::String getBypassParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Bypass");
 }

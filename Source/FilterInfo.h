@@ -29,5 +29,5 @@ namespace FilterInfo
         Peak
     };
 
-    const std::map<FilterType, String>& getFilterTypeMap();
+    const std::map<FilterType, juce::String>& getFilterTypeMap();
 }
