@@ -22,13 +22,61 @@ struct FilterParametersBase
 
 struct FilterParameters : FilterParametersBase
 {
-    FilterInfo::FilterType filterType { FilterInfo::FilterType::LowPass };
+    FilterParameters () {}
+    // Copy Constructor
+    FilterParameters (const FilterParameters& params)
+    {
+        frequency = params.frequency;
+        bypassed = params.bypassed;
+        quality = params.quality;
+        sampleRate = params.sampleRate;
+        filterType = params.filterType;
+        gainInDb = params.gainInDb;
+    }
     
+    bool isEqual (const FilterParameters& params)
+    {
+        return  (frequency != params.frequency) ||
+                (bypassed != params.bypassed) ||
+                (quality != params.quality) ||
+                (sampleRate != params.sampleRate) ||
+                (filterType != params.filterType) ||
+                (gainInDb != params.gainInDb);
+    }
+    
+    // Member Variables
+    FilterInfo::FilterType filterType { FilterInfo::FilterType::LowPass };
     float gainInDb { 0 };
+    
+    
 };
 
 struct HighCutLowCutParameters : FilterParametersBase
 {
+    HighCutLowCutParameters () {}
+    
+    // Copy Constructor
+    HighCutLowCutParameters (const HighCutLowCutParameters& params)
+    {
+        frequency = params.frequency;
+        bypassed = params.bypassed;
+        quality = params.quality;
+        sampleRate = params.sampleRate;
+        order = params.order;
+        isLowcut = params.isLowcut;
+    }
+    
+    bool isEqual (const HighCutLowCutParameters& params)
+    {
+        return  (frequency != params.frequency) ||
+                (bypassed != params.bypassed) ||
+                (quality != params.quality) ||
+                (sampleRate != params.sampleRate) ||
+                (order != params.order) ||
+                (isLowcut != params.isLowcut);
+    }
+    
+    // Member Variables
     int order { 1 };
     bool isLowcut { true };
 };
