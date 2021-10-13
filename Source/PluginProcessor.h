@@ -14,6 +14,7 @@
 #include "FilterParametersBase.h"
 #include "FilterInfo.h"
 
+
 //==============================================================================
 /**
 */
@@ -60,18 +61,48 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
-//    Atomic
-    HighCutLowCutParameters highCutLowCutParams;
-    FilterParameters filterParams;
+    HighCutLowCutParameters highCutLowCutParams, old_highCutLowCutParams;
+    FilterParameters filterParams, old_filterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using singleFilterChain = juce::dsp::ProcessorChain<Filter>;
     
     singleFilterChain leftChain, rightChain;
     
-//    void updateFilterChainCoeff (singleFilterChain& chain);
-    
-    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
 };
+
+
+
+////==============================================================================
+//struct ParamListener : juce::AudioProcessorParameter::Listener
+//{
+//    ParamListener ( Pfmcpp_project10AudioProcessor& )
+//    {
+//        const auto& params = audioProcessor.getParameters();
+//        for ( auto param : params)
+//        {
+//            param->addListener(this);
+//        }
+//    }
+//    ~ParamListener () override
+//    {
+//        const auto& params = audioProcessor.getParameters();
+//        for ( auto param : params)
+//        {
+//            param->removeListener(this);
+//        }
+//    }
+//
+//    void parameterValueChanged (int parameterIndex, float newValue) override
+//    {
+//        parametersChanged.set(true);
+//    }
+//
+//    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override {};
+//
+//private:
+//    Pfmcpp_project10AudioProcessor audioProcessor;
+//    juce::Atomic<bool> parametersChanged { false };
+//};
