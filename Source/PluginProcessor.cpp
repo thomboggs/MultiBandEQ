@@ -111,26 +111,6 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     leftChain.prepare(spec);
     rightChain.prepare(spec);
 
-//    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
-//
-//    // Update highCutLowCutParams according to apvts to test
-//    updateCutParams(highCutLowCutParams);
-//
-//    oldCutParams = highCutLowCutParams;
-//
-//    // Update filterParams according to apvts to test
-//    updateFilterParams(filterParams);
-//
-//    oldFilterParams = filterParams;
-//
-//    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
-//    {
-//        updateCutCoefficients(highCutLowCutParams);
-//    }
-//    else
-//    {
-//        updateFilterCoefficients(filterParams);
-//    }
     initializeFilters();
 }
 
@@ -362,8 +342,6 @@ void Pfmcpp_project10AudioProcessor::initializeFilters()
         updateFilterCoefficients(filterParams);
     }
 }
-
-
 
 
 //==============================================================================

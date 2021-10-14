@@ -65,9 +65,9 @@ private:
     FilterParameters filterParams, oldFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
-    using singleFilterChain = juce::dsp::ProcessorChain<Filter>;
+    using SingleFilterChain = juce::dsp::ProcessorChain<Filter>;
     
-    singleFilterChain leftChain, rightChain;
+    SingleFilterChain leftChain, rightChain;
     
     void updateCutParams (HighCutLowCutParameters& params);
     void updateFilterParams (FilterParameters& params);
@@ -78,37 +78,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
 };
-
-
-
-////==============================================================================
-//struct ParamListener : juce::AudioProcessorParameter::Listener
-//{
-//    ParamListener ( Pfmcpp_project10AudioProcessor& )
-//    {
-//        const auto& params = audioProcessor.getParameters();
-//        for ( auto param : params)
-//        {
-//            param->addListener(this);
-//        }
-//    }
-//    ~ParamListener () override
-//    {
-//        const auto& params = audioProcessor.getParameters();
-//        for ( auto param : params)
-//        {
-//            param->removeListener(this);
-//        }
-//    }
-//
-//    void parameterValueChanged (int parameterIndex, float newValue) override
-//    {
-//        parametersChanged.set(true);
-//    }
-//
-//    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override {};
-//
-//private:
-//    Pfmcpp_project10AudioProcessor audioProcessor;
-//    juce::Atomic<bool> parametersChanged { false };
-//};
