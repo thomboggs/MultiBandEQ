@@ -172,7 +172,7 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         // if changed, calc new Coeffs
         updateCutParams(highCutLowCutParams);
         
-        if (highCutLowCutParams.isEqual(oldCutParams))
+        if (highCutLowCutParams != oldCutParams)
         {
             oldCutParams = highCutLowCutParams;
             
@@ -185,7 +185,7 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         
         // check if anything has changed
         // if changed, calc new Coeffs
-        if (filterParams.isEqual(oldFilterParams))
+        if (filterParams != oldFilterParams)
         {
             oldFilterParams = filterParams;
             
