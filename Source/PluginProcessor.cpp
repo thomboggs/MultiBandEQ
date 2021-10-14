@@ -110,39 +110,26 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     
     leftChain.prepare(spec);
     rightChain.prepare(spec);
-    
-    auto& leftCoeffs = leftChain.get<0>();
-    auto& rightCoeffs = rightChain.get<0>();
 
     auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
     
     // Update highCutLowCutParams according to apvts to test
-    highCutLowCutParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
-    highCutLowCutParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
-    highCutLowCutParams.isLowcut = currentFilterType == FilterInfo::LowPass;
-    highCutLowCutParams.order = 1;
-    highCutLowCutParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+    updateCutParams(highCutLowCutParams);
     
     oldCutParams = highCutLowCutParams;
     
     // Update filterParams according to apvts to test
-    filterParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
-    filterParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
-    filterParams.filterType = currentFilterType;
-    filterParams.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
-    filterParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+    updateFilterParams(filterParams);
     
     oldFilterParams = filterParams;
     
     if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
     {
-        leftCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
-        rightCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+        updateCutCoefficients(highCutLowCutParams);
     }
     else
     {
-        leftCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
-        rightCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+        updateFilterCoefficients(filterParams);
     }
 }
 
@@ -202,41 +189,26 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     {
         // check if anything has changed
         // if changed, calc new Coeffs
-        highCutLowCutParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
-        highCutLowCutParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
-        highCutLowCutParams.isLowcut = currentFilterType == FilterInfo::LowPass;
-        highCutLowCutParams.order = 1;
-        highCutLowCutParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+        updateCutParams(highCutLowCutParams);
         
         if (highCutLowCutParams.isEqual(oldCutParams))
         {
             oldCutParams = highCutLowCutParams;
             
-            auto& leftCoeffs = leftChain.get<0>();
-            auto& rightCoeffs = rightChain.get<0>();
-            
-            leftCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
-            rightCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+            updateCutCoefficients(highCutLowCutParams);
         }
     }
     else
     {
-        filterParams.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
-        filterParams.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
-        filterParams.filterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
-        filterParams.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
-        filterParams.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+        updateFilterParams(filterParams);
+        
         // check if anything has changed
         // if changed, calc new Coeffs
         if (filterParams.isEqual(oldFilterParams))
         {
             oldFilterParams = filterParams;
             
-            auto& leftCoeffs = leftChain.get<0>();
-            auto& rightCoeffs = rightChain.get<0>();
-            
-            leftCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
-            rightCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+            updateFilterCoefficients(filterParams);
         }
     }
     
@@ -310,7 +282,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
         
         while (it != filterTypeMap.end())
         {
-//            DBG(it->second);
             stringArray.add(it->second);
             it++;
         }
@@ -323,6 +294,46 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
     
     return layout;
 }
+
+//==============================================================================
+void Pfmcpp_project10AudioProcessor::updateCutParams(HighCutLowCutParameters& params)
+{
+    params.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
+    params.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
+    params.isLowcut = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load() == FilterInfo::LowPass;
+    params.order = 1;
+    params.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+}
+
+void Pfmcpp_project10AudioProcessor::updateFilterParams(FilterParameters& params)
+{
+    params.frequency = apvts.getRawParameterValue(getFreqParamName(0))->load();
+    params.quality = apvts.getRawParameterValue(getQualityParamName(0))->load();
+    params.filterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+    params.gainInDb = apvts.getRawParameterValue(getGainParamName(0))->load();
+    params.bypassed = (bool)apvts.getRawParameterValue(getBypassParamName(0))->load();
+}
+
+void Pfmcpp_project10AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params)
+{
+    auto& leftCoeffs = leftChain.get<0>();
+    auto& rightCoeffs = rightChain.get<0>();
+    
+
+    leftCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+    rightCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+}
+
+void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParameters& params)
+{
+    auto& leftCoeffs = leftChain.get<0>();
+    auto& rightCoeffs = rightChain.get<0>();
+    
+    leftCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+    rightCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+}
+
+
 
 //==============================================================================
 // This creates new instances of the plugin..

@@ -69,6 +69,11 @@ private:
     
     singleFilterChain leftChain, rightChain;
     
+    void updateCutParams (HighCutLowCutParameters& params);
+    void updateFilterParams (FilterParameters& params);
+    void updateCutCoefficients (const HighCutLowCutParameters& params);
+    void updateFilterCoefficients (const FilterParameters& params);
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
 };
