@@ -26,6 +26,15 @@ struct FilterParametersBase
 
 struct FilterParameters : FilterParametersBase
 {
+    FilterParameters () = default;
+    FilterParameters ( float frequency, bool bypassed, float quality, double sampleRate, FilterInfo::FilterType filterType, float gainInDb) :
+        filterType(filterType), gainInDb(gainInDb)
+    {
+        this->frequency = frequency;
+        this->bypassed = bypassed;
+        this->quality = quality;
+        this->sampleRate = sampleRate;
+    }
     friend bool operator== (const FilterParameters& lhs, const FilterParameters& rhs);
     friend bool operator!= (const FilterParameters& lhs, const FilterParameters& rhs);
     
@@ -36,6 +45,15 @@ struct FilterParameters : FilterParametersBase
 
 struct HighCutLowCutParameters : FilterParametersBase
 {
+    HighCutLowCutParameters () = default;
+    HighCutLowCutParameters ( float frequency, bool bypassed, float quality, double sampleRate, int order, bool isLowcut) :
+        order(order), isLowcut(isLowcut)
+    {
+        this->frequency = frequency;
+        this->bypassed = bypassed;
+        this->quality = quality;
+        this->sampleRate = sampleRate;
+    }
     friend bool operator== (const HighCutLowCutParameters& lhs, const HighCutLowCutParameters& rhs);
     friend bool operator!= (const HighCutLowCutParameters& lhs, const HighCutLowCutParameters& rhs);
     
