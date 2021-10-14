@@ -256,9 +256,7 @@ void Pfmcpp_project10AudioProcessor::setStateInformation (const void* data, int 
     if ( tree.isValid() )
     {
         apvts.replaceState(tree);
-        // Update FiltersParams and Filter Coefficients
-        initializeFilters();
-        
+        // This updates the apvts. In the processBlock, any apvts changes will be automatically applied.
     }
 }
 
