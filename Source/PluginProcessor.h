@@ -61,19 +61,19 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
-    HighCutLowCutParameters highCutLowCutParams, oldCutParams;
-    FilterParameters filterParams, oldFilterParams;
+    HighCutLowCutParameters currentCutParams;
+    FilterParameters currentFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using SingleFilterChain = juce::dsp::ProcessorChain<Filter>;
     
     SingleFilterChain leftChain, rightChain;
     
-    void updateCutParams (HighCutLowCutParameters& params);
-    void updateFilterParams (FilterParameters& params);
     void updateCutCoefficients (const HighCutLowCutParameters& params);
     void updateFilterCoefficients (const FilterParameters& params);
-    void initializeFilters ();
+    
+    HighCutLowCutParameters getCutParams (int bandNum);
+    FilterParameters getFilterParams (int bandNum);
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
