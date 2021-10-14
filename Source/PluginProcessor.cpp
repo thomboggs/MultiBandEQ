@@ -305,21 +305,21 @@ void Pfmcpp_project10AudioProcessor::updateFilterParams(FilterParameters& params
 
 void Pfmcpp_project10AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params)
 {
-    auto& leftCoeffs = leftChain.get<0>();
-    auto& rightCoeffs = rightChain.get<0>();
+    auto& leftFilter = leftChain.get<0>();
+    auto& rightFilter = rightChain.get<0>();
     
 
-    leftCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
-    rightCoeffs = CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
+    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(highCutLowCutParams)[0];
 }
 
 void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParameters& params)
 {
-    auto& leftCoeffs = leftChain.get<0>();
-    auto& rightCoeffs = rightChain.get<0>();
+    auto& leftFilter = leftChain.get<0>();
+    auto& rightFilter = rightChain.get<0>();
     
-    leftCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
-    rightCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+    *leftFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
+    *rightFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
 }
 
 
