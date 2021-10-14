@@ -111,26 +111,27 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     leftChain.prepare(spec);
     rightChain.prepare(spec);
 
-    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
-    
-    // Update highCutLowCutParams according to apvts to test
-    updateCutParams(highCutLowCutParams);
-    
-    oldCutParams = highCutLowCutParams;
-    
-    // Update filterParams according to apvts to test
-    updateFilterParams(filterParams);
-    
-    oldFilterParams = filterParams;
-    
-    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
-    {
-        updateCutCoefficients(highCutLowCutParams);
-    }
-    else
-    {
-        updateFilterCoefficients(filterParams);
-    }
+//    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+//
+//    // Update highCutLowCutParams according to apvts to test
+//    updateCutParams(highCutLowCutParams);
+//
+//    oldCutParams = highCutLowCutParams;
+//
+//    // Update filterParams according to apvts to test
+//    updateFilterParams(filterParams);
+//
+//    oldFilterParams = filterParams;
+//
+//    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
+//    {
+//        updateCutCoefficients(highCutLowCutParams);
+//    }
+//    else
+//    {
+//        updateFilterCoefficients(filterParams);
+//    }
+    initializeFilters();
 }
 
 void Pfmcpp_project10AudioProcessor::releaseResources()
@@ -243,12 +244,22 @@ void Pfmcpp_project10AudioProcessor::getStateInformation (juce::MemoryBlock& des
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void Pfmcpp_project10AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if ( tree.isValid() )
+    {
+        apvts.replaceState(tree);
+        // Update FiltersParams and Filter Coefficients
+        initializeFilters();
+        
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcessor::createParameterLayout ()
@@ -332,6 +343,28 @@ void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParame
     leftCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
     rightCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(filterParams);
 }
+
+
+void Pfmcpp_project10AudioProcessor::initializeFilters()
+{
+    updateCutParams(highCutLowCutParams);
+    oldCutParams = highCutLowCutParams;
+    
+    updateFilterParams(filterParams);
+    oldFilterParams = filterParams;
+    
+    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+    
+    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
+    {
+        updateCutCoefficients(highCutLowCutParams);
+    }
+    else
+    {
+        updateFilterCoefficients(filterParams);
+    }
+}
+
 
 
 
