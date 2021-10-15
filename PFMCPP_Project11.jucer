@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="xLbyvx" name="Project11" projectType="audioplug" cppLanguageStandard="17"
-              companyName="GCR Audio" jucerFormatVersion="1">
+              companyName="GCR Audio" jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="ORymcZ" name="Project11">
     <GROUP id="{A92DB368-5243-6129-F1D5-73D06AFB4761}" name="Source">
       <FILE id="wIkKgd" name="FilterHelperFunctions.cpp" compile="1" resource="0"

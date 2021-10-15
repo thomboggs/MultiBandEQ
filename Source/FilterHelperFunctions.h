@@ -13,8 +13,8 @@
 
 
 // Free Functions to create Parameter Names
-String getGainParamName(int filterNum);
-String getQualityParamName(int filterNum);
-String getFreqParamName(int filterNum);
-String getTypeParamName(int filterNum);
-String getBypassParamName(int filterNum);
+juce::String getGainParamName(int filterNum);
+juce::String getQualityParamName(int filterNum);
+juce::String getFreqParamName(int filterNum);
+juce::String getTypeParamName(int filterNum);
+juce::String getBypassParamName(int filterNum);

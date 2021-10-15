@@ -11,9 +11,9 @@
 #include "FilterInfo.h"
 
 
-const std::map<FilterInfo::FilterType, String>& FilterInfo::getFilterTypeMap()
+const std::map<FilterInfo::FilterType, juce::String>& FilterInfo::getFilterTypeMap()
 {
-    static std::map<FilterInfo::FilterType, String> FilterTypeMap
+    static std::map<FilterInfo::FilterType, juce::String> FilterTypeMap
     {
         {FilterInfo::FilterType::FirstOrderLowPass, "FirstOrderLowPass"},
         {FilterInfo::FilterType::FirstOrderHighPass, "FirstOrderHighPass"},

@@ -14,10 +14,11 @@
 #include "FilterParametersBase.h"
 #include "FilterInfo.h"
 
+
 //==============================================================================
 /**
 */
-class Pfmcpp_project10AudioProcessor  : public AudioProcessor
+class Pfmcpp_project10AudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
@@ -32,14 +33,14 @@ public:
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
 
-    void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
+    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     //==============================================================================
-    AudioProcessorEditor* createEditor() override;
+    juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
     //==============================================================================
-    const String getName() const override;
+    const juce::String getName() const override;
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
@@ -50,16 +51,30 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
-    const String getProgramName (int index) override;
-    void changeProgramName (int index, const String& newName) override;
+    const juce::String getProgramName (int index) override;
+    void changeProgramName (int index, const juce::String& newName) override;
 
     //==============================================================================
-    void getStateInformation (MemoryBlock& destData) override;
+    void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
+    HighCutLowCutParameters currentCutParams;
+    FilterParameters currentFilterParams;
+    
+    using Filter = juce::dsp::IIR::Filter<float>;
+    using SingleFilterChain = juce::dsp::ProcessorChain<Filter>;
+    
+    SingleFilterChain leftChain, rightChain;
+    
+    void updateCutCoefficients (const HighCutLowCutParameters& params);
+    void updateFilterCoefficients (const FilterParameters& params);
+    
+    HighCutLowCutParameters getCutParams (int bandNum);
+    FilterParameters getFilterParams (int bandNum);
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
 };
