@@ -83,7 +83,7 @@ bool operator!= (const FilterParametersBase& lhs, const FilterParametersBase& rh
 bool operator== (const FilterParameters& lhs, const FilterParameters& rhs)
 {
     // check if base class members are the same
-    if ( static_cast<const FilterParametersBase>(lhs) == static_cast<const FilterParametersBase>(rhs))
+    if ( static_cast<const FilterParametersBase&>(lhs) == static_cast<const FilterParametersBase&>(rhs))
     {
         return (lhs.filterType == rhs.filterType) && (lhs.gainInDb == rhs.gainInDb);
     }
@@ -100,7 +100,7 @@ bool operator!= (const FilterParameters& lhs, const FilterParameters& rhs)
 bool operator== (const HighCutLowCutParameters& lhs, const HighCutLowCutParameters& rhs)
 {
     // check if base class members are the same
-    if (static_cast<const FilterParametersBase>(lhs) == static_cast<const FilterParametersBase>(rhs))
+    if (static_cast<const FilterParametersBase&>(lhs) == static_cast<const FilterParametersBase&>(rhs))
     {
         return (lhs.order == rhs.order) && (lhs.isLowcut == rhs.isLowcut);
     }
