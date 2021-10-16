@@ -16,14 +16,14 @@
 //==============================================================================
 /**
 */
-class Pfmcpp_project10AudioProcessorEditor  : public AudioProcessorEditor
+class Pfmcpp_project10AudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     Pfmcpp_project10AudioProcessorEditor (Pfmcpp_project10AudioProcessor&);
     ~Pfmcpp_project10AudioProcessorEditor();
 
     //==============================================================================
-    void paint (Graphics&) override;
+    void paint (juce::Graphics&) override;
     void resized() override;
 
 private:

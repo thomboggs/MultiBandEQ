@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="xLbyvx" name="Project11" projectType="audioplug" cppLanguageStandard="17"
-              companyName="GCR Audio" jucerFormatVersion="1">
+              companyName="GCR Audio" jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="ORymcZ" name="Project11">
     <GROUP id="{A92DB368-5243-6129-F1D5-73D06AFB4761}" name="Source">
+      <FILE id="wIkKgd" name="FilterHelperFunctions.cpp" compile="1" resource="0"
+            file="Source/FilterHelperFunctions.cpp"/>
+      <FILE id="Fr0IwB" name="FilterHelperFunctions.h" compile="0" resource="0"
+            file="Source/FilterHelperFunctions.h"/>
+      <FILE id="fIrQhV" name="CoefficientsMaker.h" compile="0" resource="0"
+            file="Source/CoefficientsMaker.h"/>
+      <FILE id="tvbhUR" name="FilterParametersBase.h" compile="0" resource="0"
+            file="Source/FilterParametersBase.h"/>
+      <FILE id="JbSee6" name="FilterInfo.cpp" compile="1" resource="0" file="Source/FilterInfo.cpp"/>
+      <FILE id="XdoIxK" name="FilterInfo.h" compile="0" resource="0" file="Source/FilterInfo.h"/>
       <FILE id="GoZaVW" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="m8T8iH" name="PluginProcessor.h" compile="0" resource="0"
@@ -32,6 +42,7 @@
         <MODULEPATH id="juce_graphics" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -45,6 +56,7 @@
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
