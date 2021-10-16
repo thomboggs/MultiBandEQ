@@ -9,6 +9,7 @@
 */
 
 #pragma once
+#include "../JuceLibraryCode/JuceHeader.h"
 #include <cmath>
 
 
@@ -17,7 +18,7 @@ struct Decibel
 {
     // Constructors
     // default constructor
-    Decibel () {};
+    Decibel () noexcept = default;
     // a constructor that takes a FloatType parameter to initialize your member variable.
     Decibel (FloatType inputGainInDb) : gainInDb(inputGainInDb) {};
     
@@ -26,42 +27,34 @@ struct Decibel
     Decibel (const Decibel& decibel) : gainInDb(decibel.gainInDb) {};
     
     // Copy Assignment Operator
-    Decibel& operator=(const Decibel& other)
-    {
-        if (this != &other)
-        {
-            gainInDb = other.gainInDb;
-        }
-
-        return *this;
-    }
+    Decibel& operator=(const Decibel& other) noexcept = default;
     
     // Destructor
-    ~Decibel() {};
+    ~Decibel() noexcept = default;
     
     // Math Operators
     // LHS
     Decibel& operator+=(const Decibel& other)
     {
-        this->gainInDb = this->gainInDb + other.gainInDb;
+        gainInDb = gainInDb + other.gainInDb;
         return *this;
     }
     
     Decibel& operator-=(const Decibel& other)
     {
-        this->gainInDb = this->gainInDb - other.gainInDb;
+        gainInDb = gainInDb - other.gainInDb;
         return *this;
     }
     
     Decibel& operator*=(const Decibel& other)
     {
-        this->gainInDb = this->gainInDb * other.gainInDb;
+        gainInDb = gainInDb * other.gainInDb;
         return *this;
     }
     
     Decibel& operator/=(const Decibel& other)
     {
-        this->gainInDb = this->gainInDb / other.gainInDb;
+        gainInDb = gainInDb / other.gainInDb;
         return *this;
     }
     
@@ -122,7 +115,7 @@ struct Decibel
     // Setters and getters
     FloatType getGain() const
     {
-        return std::pow(10.f, gainInDb / 20.f);
+        return juce::Decibels::decibelsToGain(gainInDb);
     }
 
     FloatType getDb() const
@@ -130,9 +123,9 @@ struct Decibel
         return gainInDb;
     }
 
-    void setGain(FloatType g)
+    void setGain(FloatType gain)
     {
-        gainInDb = 20.f * std::log10(g);
+        gainInDb = juce::Decibels::gainToDecibels(gain)
     }
 
     void setDb(FloatType db)
