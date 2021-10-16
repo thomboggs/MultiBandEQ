@@ -299,74 +299,68 @@ void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParame
 
 FilterParameters Pfmcpp_project10AudioProcessor::getFilterParams(int bandNum)
 {
-    // Need to initialize variables outside of if statements
-    auto frequency = 500.f;
-    auto bypassed = true;
-    auto quality = 1.f;
-    auto sampleRate = getSampleRate();
-    auto filterType = FilterInfo::FirstOrderLowPass;
-    auto gainInDb = 0.f;
+    FilterParameters params;
+
+    params.sampleRate = getSampleRate();
     
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getFreqParamName(bandNum))))
     {
-        frequency = p->get();
+        params.frequency = p->get();
     }
     
     if (auto* p = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(bandNum))))
     {
-        bypassed = p->get();
+        params.bypassed = p->get();
     }
     
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getQualityParamName(bandNum))))
     {
-        quality = p->get();
+        params.quality = p->get();
     }
 
     if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getTypeParamName(bandNum))))
     {
-        filterType = static_cast<FilterInfo::FilterType>(p->getIndex());
+        params.filterType = static_cast<FilterInfo::FilterType>(p->getIndex());
     }
 
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getGainParamName(bandNum))))
     {
-        gainInDb = p->get();
+        params.gainInDb = p->get();
     }
     
-    return {frequency, bypassed, quality, sampleRate, filterType, gainInDb};
+    return params;
 }
 
 HighCutLowCutParameters Pfmcpp_project10AudioProcessor::getCutParams(int bandNum)
 {
-    // Need to initialize variables outside of if statements
-    auto frequency = 500.f;
-    auto bypassed = true;
-    auto quality = 1.f;
-    auto sampleRate = getSampleRate();
-    auto order = 1;
-    auto isLowcut = true;
+    HighCutLowCutParameters params;
+    
+    params.sampleRate = getSampleRate();
+    params.order = 1;
     
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getFreqParamName(bandNum))))
     {
-        frequency = p->get();
+        params.frequency = p->get();
     }
     
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getQualityParamName(bandNum))))
     {
-        quality = p->get();
+        params.quality = p->get();
     }
     
     if (auto* p = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(bandNum))))
     {
-        bypassed = p->get();
+        params.bypassed = p->get();
     }
     
     if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getTypeParamName(bandNum))))
     {
-        isLowcut = ( static_cast<FilterInfo::FilterType>(p->getIndex()) == FilterInfo::LowPass  );
+        params.isLowcut = ( static_cast<FilterInfo::FilterType>(p->getIndex()) == FilterInfo::LowPass  );
         
     }
     
-    return {frequency, bypassed, quality, sampleRate, order, isLowcut};
+    return params;
+    
 }
 
 
