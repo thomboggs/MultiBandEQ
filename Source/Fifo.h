@@ -2,8 +2,8 @@
   ==============================================================================
 
     Fifo.h
-    Created: 16 Oct 2021 5:29:03pm
-    Author:  Thomas Boggs
+    Created: 16 Oct 2021
+    Author:  Thomas Boggs   
 
   ==============================================================================
 */
@@ -14,7 +14,7 @@
 
 
 template <typename T, size_t Size>
-struct Fifo : std::false_type
+struct Fifo
 {
     Fifo () : bufferSize(Size) {}
     
@@ -64,7 +64,7 @@ struct Fifo : std::false_type
     {
         /*
          If T is a ref-counted object:
-            - Can be cast to RefCountedObjectPtr
+         - is_same_v?? todo
          - Make sure that refcount doesn't go to 0
          
          Otherwise, push as normal.
@@ -114,14 +114,3 @@ private:
     std::array<T, Size> myBuffers;
     size_t bufferSize;
 };
-
-//==============================================================================
-// Template specialization for ReferenceCountedObjects
-
-using Coefficients = typename juce::dsp::IIR::Filter<float>::CoefficientsPtr;
-template <size_t Size>
-struct Fifo<Coefficients, Size> : std::true_type { };
-
-using IIRCoeffs = juce::dsp::IIR::Coefficients<float>;
-template <size_t Size>
-struct Fifo<IIRCoeffs, Size> : std::true_type { };
