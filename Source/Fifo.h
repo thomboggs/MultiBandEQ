@@ -12,10 +12,13 @@
 #include <vector>
 #include "../JuceLibraryCode/JuceHeader.h"
 
+
 template <typename T, size_t Size>
 struct Fifo : std::false_type
 {
-    size_t getSize() { return Size; }
+    Fifo () : bufferSize(Size) {}
+    
+    size_t getSize() { return bufferSize; }
     
     //used when T is AudioBuffer<float>
     void prepare(int numSamples, int numChannels)
@@ -109,13 +112,11 @@ struct Fifo : std::false_type
 private:
     juce::AbstractFifo fifo { Size };
     std::array<T, Size> myBuffers;
-    
-    
+    size_t bufferSize;
 };
 
-
-template <size_t Size>
-struct Fifo<juce::AudioBuffer<float>, Size> : std::true_type { };
+//==============================================================================
+// Template specialization for ReferenceCountedObjects
 
 using Coefficients = typename juce::dsp::IIR::Filter<float>::CoefficientsPtr;
 template <size_t Size>
