@@ -18,12 +18,12 @@
 //==============================================================================
 /**
 */
-class Pfmcpp_project10AudioProcessor  : public juce::AudioProcessor
+class Pfmcpp_project11AudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    Pfmcpp_project10AudioProcessor();
-    ~Pfmcpp_project10AudioProcessor();
+    Pfmcpp_project11AudioProcessor();
+    ~Pfmcpp_project11AudioProcessor();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -76,5 +76,5 @@ private:
     FilterParameters getFilterParams (int bandNum);
     
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
 };
