@@ -16,7 +16,7 @@
 
 
 //==============================================================================
-Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
+Pfmcpp_project11AudioProcessor::Pfmcpp_project11AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -30,17 +30,17 @@ Pfmcpp_project10AudioProcessor::Pfmcpp_project10AudioProcessor()
 {
 }
 
-Pfmcpp_project10AudioProcessor::~Pfmcpp_project10AudioProcessor()
+Pfmcpp_project11AudioProcessor::~Pfmcpp_project11AudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String Pfmcpp_project10AudioProcessor::getName() const
+const juce::String Pfmcpp_project11AudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool Pfmcpp_project10AudioProcessor::acceptsMidi() const
+bool Pfmcpp_project11AudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -49,7 +49,7 @@ bool Pfmcpp_project10AudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool Pfmcpp_project10AudioProcessor::producesMidi() const
+bool Pfmcpp_project11AudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -58,7 +58,7 @@ bool Pfmcpp_project10AudioProcessor::producesMidi() const
    #endif
 }
 
-bool Pfmcpp_project10AudioProcessor::isMidiEffect() const
+bool Pfmcpp_project11AudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -67,37 +67,37 @@ bool Pfmcpp_project10AudioProcessor::isMidiEffect() const
    #endif
 }
 
-double Pfmcpp_project10AudioProcessor::getTailLengthSeconds() const
+double Pfmcpp_project11AudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int Pfmcpp_project10AudioProcessor::getNumPrograms()
+int Pfmcpp_project11AudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int Pfmcpp_project10AudioProcessor::getCurrentProgram()
+int Pfmcpp_project11AudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void Pfmcpp_project10AudioProcessor::setCurrentProgram (int index)
+void Pfmcpp_project11AudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String Pfmcpp_project10AudioProcessor::getProgramName (int index)
+const juce::String Pfmcpp_project11AudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void Pfmcpp_project10AudioProcessor::changeProgramName (int index, const juce::String& newName)
+void Pfmcpp_project11AudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void Pfmcpp_project11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
@@ -108,14 +108,14 @@ void Pfmcpp_project10AudioProcessor::prepareToPlay (double sampleRate, int sampl
     rightChain.prepare(spec);
 }
 
-void Pfmcpp_project10AudioProcessor::releaseResources()
+void Pfmcpp_project11AudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool Pfmcpp_project10AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool Pfmcpp_project11AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
@@ -138,7 +138,7 @@ bool Pfmcpp_project10AudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 }
 #endif
 
-void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -199,19 +199,19 @@ void Pfmcpp_project10AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
 }
 
 //==============================================================================
-bool Pfmcpp_project10AudioProcessor::hasEditor() const
+bool Pfmcpp_project11AudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* Pfmcpp_project10AudioProcessor::createEditor()
+juce::AudioProcessorEditor* Pfmcpp_project11AudioProcessor::createEditor()
 {
 //    return new Pfmcpp_project10AudioProcessorEditor (*this);
     return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void Pfmcpp_project10AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void Pfmcpp_project11AudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -220,7 +220,7 @@ void Pfmcpp_project10AudioProcessor::getStateInformation (juce::MemoryBlock& des
     apvts.state.writeToStream(mos);
 }
 
-void Pfmcpp_project10AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void Pfmcpp_project11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -232,7 +232,7 @@ void Pfmcpp_project10AudioProcessor::setStateInformation (const void* data, int 
     }
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcessor::createParameterLayout ()
+juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcessor::createParameterLayout ()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
@@ -277,7 +277,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project10AudioProcess
 }
 
 //==============================================================================
-void Pfmcpp_project10AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params)
+void Pfmcpp_project11AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params)
 {
     auto& leftFilter = leftChain.get<0>();
     auto& rightFilter = rightChain.get<0>();
@@ -287,7 +287,7 @@ void Pfmcpp_project10AudioProcessor::updateCutCoefficients(const HighCutLowCutPa
     *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
 }
 
-void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParameters& params)
+void Pfmcpp_project11AudioProcessor::updateFilterCoefficients(const FilterParameters& params)
 {
     auto& leftFilter = leftChain.get<0>();
     auto& rightFilter = rightChain.get<0>();
@@ -297,7 +297,7 @@ void Pfmcpp_project10AudioProcessor::updateFilterCoefficients(const FilterParame
 }
 
 
-FilterParameters Pfmcpp_project10AudioProcessor::getFilterParams(int bandNum)
+FilterParameters Pfmcpp_project11AudioProcessor::getFilterParams(int bandNum)
 {
     FilterParameters params;
 
@@ -331,7 +331,7 @@ FilterParameters Pfmcpp_project10AudioProcessor::getFilterParams(int bandNum)
     return params;
 }
 
-HighCutLowCutParameters Pfmcpp_project10AudioProcessor::getCutParams(int bandNum)
+HighCutLowCutParameters Pfmcpp_project11AudioProcessor::getCutParams(int bandNum)
 {
     HighCutLowCutParameters params;
     
@@ -369,5 +369,5 @@ HighCutLowCutParameters Pfmcpp_project10AudioProcessor::getCutParams(int bandNum
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new Pfmcpp_project10AudioProcessor();
+    return new Pfmcpp_project11AudioProcessor();
 }
