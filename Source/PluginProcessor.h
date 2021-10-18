@@ -65,9 +65,9 @@ private:
     FilterParameters currentFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
-    using SingleFilterChain = juce::dsp::ProcessorChain<Filter>;
+    using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
     
-    SingleFilterChain leftChain, rightChain;
+    FilterChain leftChain, rightChain;
     
     void updateCutCoefficients (const HighCutLowCutParameters& params);
     void updateFilterCoefficients (const FilterParameters& params);
