@@ -30,8 +30,6 @@ template <>
 struct IsReferenceCountedObjectPtr<IIRCoeffs> : std::true_type { };
 
 
-
-
 //=============================================================================
 /*
  Fifo
