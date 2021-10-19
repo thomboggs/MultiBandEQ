@@ -27,7 +27,7 @@ template <>
 struct IsReferenceCountedObjectPtr<Coefficients> : std::true_type { };
 
 template <>
-struct IsReferenceCountedObjectPtr<IIRCoeffs> : std::true_type { };
+struct IsReferenceCountedObjectPtr<juce::ReferenceCountedArray<IIRCoeffs>> : std::true_type { };
 
 
 //=============================================================================
