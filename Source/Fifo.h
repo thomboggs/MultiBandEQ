@@ -13,6 +13,29 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
+//=============================================================================
+/*
+ Template Specialization For Push() Function
+ */
+using Coefficients = typename juce::dsp::IIR::Filter<float>::CoefficientsPtr;
+using IIRCoeffs = juce::dsp::IIR::Coefficients<float>;
+
+template <typename T>
+struct IsReferenceCountedObjectPtr : std::false_type { };
+
+template <>
+struct IsReferenceCountedObjectPtr<Coefficients> : std::true_type { };
+
+template <>
+struct IsReferenceCountedObjectPtr<IIRCoeffs> : std::true_type { };
+
+
+
+
+//=============================================================================
+/*
+ Fifo
+ */
 template <typename T, size_t Size>
 struct Fifo
 {
@@ -60,29 +83,31 @@ struct Fifo
         }
     }
     
+    /*
+     If T is a ref-counted object:
+     - is_same_v?? todo
+     - Make sure that refcount doesn't go to 0
+     
+     Otherwise, push as normal.
+     */
     bool push(const T& t)
     {
-        /*
-         If T is a ref-counted object:
-         - is_same_v?? todo
-         - Make sure that refcount doesn't go to 0
-         
-         Otherwise, push as normal.
-         */
         auto writeHandle = fifo.write (1);
         
         if (writeHandle.blockSize1 > 0)
         {
-            if (Fifo<T, Size>::value)
+            // Cast the writeindex to size_t, because the return type is int
+            size_t index = static_cast<size_t>(writeHandle.startIndex1);
+            
+            if constexpr (IsReferenceCountedObjectPtr<T>::value)
             {
-                auto currentBuf = myBuffers[writeHandle.startIndex1];
+                auto currentBuf = myBuffers[index];
                 jassert(currentBuf.getReferenceCount() > 1);
                 
-                myBuffers[writeHandle.startIndex1] = t;
+                myBuffers[index] = t;
                 return true;
             }
-            
-            myBuffers[writeHandle.startIndex1] = t;
+            myBuffers[index] = t;
             return true;
         }
         return false;
@@ -93,7 +118,9 @@ struct Fifo
         auto readHandle = fifo.read(1);
         if (readHandle.blockSize1 > 0)
         {
-            t = myBuffers[readHandle.readIndex1];
+            // Cast the readindex to size_t, because the return type is int
+            size_t index = static_cast<size_t>(readHandle.readIndex1);
+            t = myBuffers[index];
             return true;
         }
         return false;
@@ -114,3 +141,5 @@ private:
     std::array<T, Size> myBuffers;
     size_t bufferSize;
 };
+
+
