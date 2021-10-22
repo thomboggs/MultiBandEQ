@@ -220,6 +220,35 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         setChainBypass(true, FilterPosition::HighCut);
     }
     
+//
+//    // Check for Parameters changing
+//    // Check type of filter so you know which filter param struct to use
+//    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
+//    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
+//    {
+//        // check if anything has changed
+//        auto tempHighCutLowCutParams = getCutParams(0);
+//
+//        if (currentCutParams != tempHighCutLowCutParams)
+//        {
+//            // if changed, calc new Coeffs
+//            currentCutParams = tempHighCutLowCutParams;
+//            updateCutCoefficients(currentCutParams);
+//        }
+//    }
+//    else
+//    {
+//        // check if anything has changed
+//        auto tempFilterParams = getFilterParams(0);
+//
+//        if (currentFilterParams != tempFilterParams)
+//        {
+//            // if changed, calc new Coeffs
+//            currentFilterParams = tempFilterParams;
+//            updateFilterCoefficients(currentFilterParams);
+//        }
+//    }
+//
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
     
@@ -459,6 +488,8 @@ HighCutLowCutParameters Pfmcpp_project11AudioProcessor::getCutParams(int bandNum
         params.isLowcut = p->get();
     }
     
+    DBG(params.sampleRate);
+    
     return params;
 }
 
@@ -528,6 +559,24 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
                                                             0));
 }
 
+void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed, FilterPosition pos)
+{
+    switch (pos)
+    {
+        case FilterPosition::LowCut:
+            leftChain.template setBypassed<0>(isBypassed);
+            rightChain.template setBypassed<0>(isBypassed);
+            break;
+        case FilterPosition::Multi1:
+            leftChain.template setBypassed<1>(isBypassed);
+            rightChain.template setBypassed<1>(isBypassed);
+            break;
+        case FilterPosition::HighCut:
+            leftChain.template setBypassed<2>(isBypassed);
+            rightChain.template setBypassed<2>(isBypassed);
+            break;
+    }
+}
 
 void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed, FilterPosition pos)
 {
