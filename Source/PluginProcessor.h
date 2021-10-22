@@ -58,6 +58,7 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    static void createCutParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum, const bool isLowCut);
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
@@ -66,14 +67,27 @@ private:
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
+    static const int chainLength { 3 };
     
     FilterChain leftChain, rightChain;
     
-    void updateCutCoefficients (const HighCutLowCutParameters& params);
-    void updateFilterCoefficients (const FilterParameters& params);
+    // Fifo<ReferenceCountedArray> lowCutFifo, highCutFifo;
+    // Fifo<CoefficientsPtr> filterCoeffFifo
+    // Maybe make this second one a vector of filters so the number of fifos can be allocated at runtime?
+    
+    void updateCutCoefficients (const HighCutLowCutParameters& params, const int filterIndex);
+    void updateFilterCoefficients (const FilterParameters& params, const int filterIndex);
+    
+//    template <typename chainType, int FilterIndex>
+//    void setChainBypass(chainType& chain, const bool isBypassed)
+//    {
+//        chain.template setBypassed<index>(isBypassed);
+//    }
     
     HighCutLowCutParameters getCutParams (int bandNum);
     FilterParameters getFilterParams (int bandNum);
+    
+    
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
