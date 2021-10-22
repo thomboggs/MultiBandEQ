@@ -97,11 +97,14 @@ struct Fifo
                 jassert(currentBuf.getReferenceCount() > 1);
                 
                 myBuffers[index] = t;
-                return true;
             }
-            myBuffers[index] = t;
+            else
+            {
+                myBuffers[index] = t;
+            }
             return true;
         }
+        
         return false;
     }
     
