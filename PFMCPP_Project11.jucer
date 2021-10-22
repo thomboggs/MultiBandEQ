@@ -5,6 +5,7 @@
   <MAINGROUP id="ORymcZ" name="Project11">
     <GROUP id="{A92DB368-5243-6129-F1D5-73D06AFB4761}" name="Source">
       <FILE id="Mbawwj" name="Decibel.h" compile="0" resource="0" file="Source/Decibel.h"/>
+      <FILE id="cgoT2X" name="Fifo.h" compile="0" resource="0" file="Source/Fifo.h"/>
       <FILE id="wIkKgd" name="FilterHelperFunctions.cpp" compile="1" resource="0"
             file="Source/FilterHelperFunctions.cpp"/>
       <FILE id="Fr0IwB" name="FilterHelperFunctions.h" compile="0" resource="0"
