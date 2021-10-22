@@ -60,9 +60,9 @@ struct CoefficientsMaker
     static juce::ReferenceCountedArray<IIRCoeffs> calcCutCoefficients (const HighCutLowCutParameters& cutParams)
     {
         if (cutParams.isLowcut)
-            return juce::dsp::FilterDesign<FloatType>::designIIRLowpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
+            return juce::dsp::FilterDesign<FloatType>::designIIRHighpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
         
-        return juce::dsp::FilterDesign<FloatType>::designIIRHighpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
+        return juce::dsp::FilterDesign<FloatType>::designIIRLowpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
     }
 };
 
