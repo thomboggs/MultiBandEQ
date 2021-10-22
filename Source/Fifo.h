@@ -15,20 +15,14 @@
 
 //=============================================================================
 /*
- Template Specialization For Push() Function
+ Template Specialization To check if T is ReferenceCountedObjectPtr
  */
-using Coefficients = typename juce::dsp::IIR::Filter<float>::CoefficientsPtr;
-using IIRCoeffs = juce::dsp::IIR::Coefficients<float>;
 
 template <typename T>
 struct IsReferenceCountedObjectPtr : std::false_type { };
 
-template <>
-struct IsReferenceCountedObjectPtr<Coefficients> : std::true_type { };
-
-template <>
-struct IsReferenceCountedObjectPtr<juce::ReferenceCountedArray<IIRCoeffs>> : std::true_type { };
-
+template <typename T>
+struct IsReferenceCountedObjectPtr<juce::ReferenceCountedObjectPtr<T>> : std::true_type { };
 
 //=============================================================================
 /*
