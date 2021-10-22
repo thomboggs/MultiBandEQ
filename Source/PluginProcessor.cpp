@@ -164,8 +164,8 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         // Check for not bypassed
         if ( !static_cast<bool>( apvts.getParameter( getBypassParamName(filterIndex) ) ) )
         {
-            leftChain.setBypassed<filterIndex>(false);
-//            setChainBypass(leftChain, filterIndex, true);
+//            leftChain.setBypassed<filterIndex>(false);
+            setChainBypass<filterIndex>(leftChain, true);
             rightChain.setBypassed<filterIndex>(false);
 //            setChainBypass(leftChain, filterIndex, true);
             
