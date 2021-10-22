@@ -59,6 +59,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     static void createCutParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum, const bool isLowCut);
+    static void createFilterParamas (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum);
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:

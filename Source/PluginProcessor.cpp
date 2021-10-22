@@ -158,8 +158,6 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
      Low Cut
      */
     // Check for not bypassed
-//    DBG(std::to_string(static_cast<bool>( apvts.getParameter( getBypassParamName(FilterPosition::LowCut) ) ) ));
-    
     bool filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::LowCut)))->get();
     if ( !filterBypassed )
     {
@@ -182,8 +180,6 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
      Multi1
      */
     filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::Multi1)))->get();
-    DBG(std::to_string(filterBypassed));
-    
     if ( !filterBypassed )
     {
         setChainBypass(false, FilterPosition::Multi1);
@@ -224,35 +220,6 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         setChainBypass(true, FilterPosition::HighCut);
     }
     
-//
-//    // Check for Parameters changing
-//    // Check type of filter so you know which filter param struct to use
-//    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
-//    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
-//    {
-//        // check if anything has changed
-//        auto tempHighCutLowCutParams = getCutParams(0);
-//
-//        if (currentCutParams != tempHighCutLowCutParams)
-//        {
-//            // if changed, calc new Coeffs
-//            currentCutParams = tempHighCutLowCutParams;
-//            updateCutCoefficients(currentCutParams);
-//        }
-//    }
-//    else
-//    {
-//        // check if anything has changed
-//        auto tempFilterParams = getFilterParams(0);
-//
-//        if (currentFilterParams != tempFilterParams)
-//        {
-//            // if changed, calc new Coeffs
-//            currentFilterParams = tempFilterParams;
-//            updateFilterCoefficients(currentFilterParams);
-//        }
-//    }
-//
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
     
@@ -342,39 +309,39 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
             continue;
         }
         
+        createFilterParamas(layout, i);
         
-        
-        layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(i),
-                                                              getBypassParamName(i),
-                                                              false));
-        
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(i),
-                                                               getGainParamName(i),
-                                                               juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
-                                                                   0.f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(i),
-                                                               getQualityParamName(i),
-                                                               juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-                                                                   1.f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(i),
-                                                               getFreqParamName(i),
-                                                               juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-                                                                   500.f));
-        
-        juce::StringArray stringArray;
-        auto filterTypeMap = FilterInfo::getFilterTypeMap();
-        auto it = filterTypeMap.begin();
-        
-        while (it != filterTypeMap.end())
-        {
-            stringArray.add(it->second);
-            it++;
-        }
-        
-        layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(i),
-                                                                getTypeParamName(i),
-                                                                stringArray,
-                                                                0));
+//        layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(i),
+//                                                              getBypassParamName(i),
+//                                                              false));
+//
+//        layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(i),
+//                                                               getGainParamName(i),
+//                                                               juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+//                                                                   0.f));
+//        layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(i),
+//                                                               getQualityParamName(i),
+//                                                               juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+//                                                                   1.f));
+//        layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(i),
+//                                                               getFreqParamName(i),
+//                                                               juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+//                                                                   500.f));
+//
+//        juce::StringArray stringArray;
+//        auto filterTypeMap = FilterInfo::getFilterTypeMap();
+//        auto it = filterTypeMap.begin();
+//
+//        while (it != filterTypeMap.end())
+//        {
+//            stringArray.add(it->second);
+//            it++;
+//        }
+//
+//        layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(i),
+//                                                                getTypeParamName(i),
+//                                                                stringArray,
+//                                                                0));
     }
     
     return layout;
@@ -465,30 +432,32 @@ HighCutLowCutParameters Pfmcpp_project11AudioProcessor::getCutParams(int bandNum
     HighCutLowCutParameters params;
     
     params.sampleRate = getSampleRate();
-    params.order = 1;
+    
+    if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getQualityParamName(bandNum))))
+    {
+        params.order = p->getIndex()+1;
+    }
+//    params.order = 1;
     
     if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getFreqParamName(bandNum))))
     {
         params.frequency = p->get();
     }
     
-    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getQualityParamName(bandNum))))
-    {
-        params.quality = p->get();
-    }
+//    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getQualityParamName(bandNum))))
+//    {
+//        params.quality = p->get();
+//    }
     
     if (auto* p = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(bandNum))))
     {
         params.bypassed = p->get();
     }
     
-    if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getTypeParamName(bandNum))))
+    if (auto* p = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getTypeParamName(bandNum))))
     {
-        params.isLowcut = ( static_cast<FilterInfo::FilterType>(p->getIndex()) == FilterInfo::LowPass  );
-        
+        params.isLowcut = p->get();
     }
-    
-    DBG(params.sampleRate);
     
     return params;
 }
@@ -505,6 +474,9 @@ void Pfmcpp_project11AudioProcessor::createCutParams(juce::AudioProcessorValueTr
                                                            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
                                                                 500.f));
     
+    layout.add(std::make_unique<juce::AudioParameterBool>(getTypeParamName(filterNum),
+                                                          getTypeParamName(filterNum),
+                                                          isLowCut));
     
     juce::StringArray stringArray;
     
@@ -514,11 +486,48 @@ void Pfmcpp_project11AudioProcessor::createCutParams(juce::AudioProcessorValueTr
         stringArray.add(juce::String(i));
     }
     
+    layout.add(std::make_unique<juce::AudioParameterChoice>(getQualityParamName(filterNum),
+                                                            getQualityParamName(filterNum),
+                                                            stringArray,
+                                                            0));
+}
+
+
+void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorValueTreeState::ParameterLayout &layout, const int filterNum)
+{
+    layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(filterNum),
+                                                          getBypassParamName(filterNum),
+                                                          false));
+    
+    layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(filterNum),
+                                                           getGainParamName(filterNum),
+                                                           juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+                                                               0.f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(filterNum),
+                                                           getQualityParamName(filterNum),
+                                                           juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+                                                               1.f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(filterNum),
+                                                           getFreqParamName(filterNum),
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+                                                               500.f));
+    
+    juce::StringArray stringArray;
+    auto filterTypeMap = FilterInfo::getFilterTypeMap();
+    auto it = filterTypeMap.begin();
+    
+    while (it != filterTypeMap.end())
+    {
+        stringArray.add(it->second);
+        it++;
+    }
+    
     layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(filterNum),
                                                             getTypeParamName(filterNum),
                                                             stringArray,
                                                             0));
 }
+
 
 void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed, FilterPosition pos)
 {
