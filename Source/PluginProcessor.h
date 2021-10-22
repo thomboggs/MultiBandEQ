@@ -78,11 +78,11 @@ private:
     void updateCutCoefficients (const HighCutLowCutParameters& params, const int filterIndex);
     void updateFilterCoefficients (const FilterParameters& params, const int filterIndex);
     
-//    template <typename chainType, int FilterIndex>
-//    void setChainBypass(chainType& chain, const bool isBypassed)
-//    {
-//        chain.template setBypassed<index>(isBypassed);
-//    }
+    template <int FilterIndex, typename ChainType>
+    void setChainBypass(ChainType& chain, const bool isBypassed)
+    {
+        chain.template setBypassed<FilterIndex>(isBypassed);
+    }
     
     HighCutLowCutParameters getCutParams (int bandNum);
     FilterParameters getFilterParams (int bandNum);
