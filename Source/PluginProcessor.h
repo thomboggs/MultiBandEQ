@@ -62,6 +62,13 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
 private:
+    enum FilterPosition
+    {
+        LowCut,
+        Multi1,
+        HighCut
+    };
+    
     HighCutLowCutParameters currentCutParams;
     FilterParameters currentFilterParams;
     
@@ -75,15 +82,14 @@ private:
     // Fifo<CoefficientsPtr> filterCoeffFifo
     // Maybe make this second one a vector of filters so the number of fifos can be allocated at runtime?
     
-    void updateCutCoefficients (const HighCutLowCutParameters& params, const int filterIndex);
+    void updateCutCoefficients (const HighCutLowCutParameters& params, FilterPosition pos);
+    void updateLowCutCoefficients (const HighCutLowCutParameters& params);
+    void updateHighCutCoefficients (const HighCutLowCutParameters& params);
+    
     void updateFilterCoefficients (const FilterParameters& params, const int filterIndex);
     
-    template <int FilterIndex, typename ChainType>
-    void setChainBypass(ChainType& chain, const bool isBypassed)
-    {
-        chain.template setBypassed<FilterIndex>(isBypassed);
-    }
-    
+    void setChainBypass(const bool isBypassed, FilterPosition pos);
+//
     HighCutLowCutParameters getCutParams (int bandNum);
     FilterParameters getFilterParams (int bandNum);
     
