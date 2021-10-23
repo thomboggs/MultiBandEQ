@@ -83,11 +83,11 @@ private:
     
     FilterChain leftChain, rightChain;
     
-    using Coefficients = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
-    using IIRCoeffs = juce::dsp::IIR::Coefficients<float>;
+    using CoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
+    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
     
-    Fifo<juce::ReferenceCountedArray<IIRCoeffs>, 32> lowCutFifo, highCutFifo;
-    Fifo<Coefficients, 32> filterCoeffFifo;
+    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> lowCutFifo, highCutFifo;
+    Fifo<CoefficientsPtr, 32> filterCoeffFifo;
     // Maybe make this second one a vector of filters so the number of fifos can be allocated at runtime?
     
     void updateCutCoefficients (const HighCutLowCutParameters& params, FilterPosition pos);
