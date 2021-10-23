@@ -13,6 +13,8 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "FilterParametersBase.h"
 #include "FilterInfo.h"
+#include "Fifo.h"
+
 
 
 //==============================================================================
@@ -74,15 +76,18 @@ private:
     FilterParameters currentFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
-    using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
-//    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-//    using FilterChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+//    using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
+    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+    using FilterChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
     static const int chainLength { 3 };
     
     FilterChain leftChain, rightChain;
     
-    // Fifo<ReferenceCountedArray> lowCutFifo, highCutFifo;
-    // Fifo<CoefficientsPtr> filterCoeffFifo
+    using Coefficients = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
+    using IIRCoeffs = juce::dsp::IIR::Coefficients<float>;
+    
+    Fifo<juce::ReferenceCountedArray<IIRCoeffs>, 32> lowCutFifo, highCutFifo;
+    Fifo<Coefficients, 32> filterCoeffFifo;
     // Maybe make this second one a vector of filters so the number of fifos can be allocated at runtime?
     
     void updateCutCoefficients (const HighCutLowCutParameters& params, FilterPosition pos);
@@ -101,3 +106,4 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
 };
+
