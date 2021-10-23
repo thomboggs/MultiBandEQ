@@ -12,6 +12,7 @@
 #include "PluginEditor.h"
 #include "FilterHelperFunctions.h"
 #include "CoefficientsMaker.h"
+#include "FilterCoefficientGenerator.h"
 
 
 
