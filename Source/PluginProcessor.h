@@ -70,11 +70,13 @@ private:
         HighCut
     };
     
-    HighCutLowCutParameters currentCutParams;
+    HighCutLowCutParameters currentLowCutParams, currentHighCutParams;
     FilterParameters currentFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
+//    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+//    using FilterChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
     static const int chainLength { 3 };
     
     FilterChain leftChain, rightChain;
