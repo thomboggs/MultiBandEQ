@@ -382,39 +382,130 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
 void Pfmcpp_project11AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params, FilterPosition pos)
 {
     
-    auto& leftFilter = leftChain.template get<0>();
-    auto& rightFilter = rightChain.template get<0>();
+//    auto& leftFilter = leftChain.template get<0>();
+//    auto& rightFilter = rightChain.template get<0>();
     
 
-    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
 }
 
 
 void Pfmcpp_project11AudioProcessor::updateLowCutCoefficients(const HighCutLowCutParameters &params)
 {
-    auto& leftFilter = leftChain.template get<FilterPosition::LowCut>();
-    auto& rightFilter = rightChain.template get<FilterPosition::LowCut>();
+//    auto& leftFilter = leftChain.template get<FilterPosition::LowCut>();
+//    auto& rightFilter = rightChain.template get<FilterPosition::LowCut>();
     
 //    using IIRCoeffsFloat = juce::dsp::IIR::Coefficients<float>;
 //    auto filterCoeffArray = std::make_unique<juce::ReferenceCountedArray<IIRCoeffsFloat>>(CoefficientsMaker<float>::calcCutCoefficients(params)) ;
 //    auto filterCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params) ;
 //    DBG(filterCoeffArray.size());
     
-    // TODO Fix REFCOUNTEDARRAY COEFF HANDLING
-    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+    
+//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+    auto& leftCutFilterChain = leftChain.template get<FilterPosition::LowCut>();
+    auto& rightCutFilterChain = rightChain.template get<FilterPosition::LowCut>();
+    
+    auto lowCutCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params);
+    
+    /*
+     - Set all cut filters to bypass
+     - Switch statement through order
+     - Fall through to unbypass and apply coeffs
+     */
+    leftCutFilterChain.setBypassed<0>(true);
+    leftCutFilterChain.setBypassed<1>(true);
+    leftCutFilterChain.setBypassed<2>(true);
+    leftCutFilterChain.setBypassed<3>(true);
+    
+    rightCutFilterChain.setBypassed<0>(true);
+    rightCutFilterChain.setBypassed<1>(true);
+    rightCutFilterChain.setBypassed<2>(true);
+    rightCutFilterChain.setBypassed<3>(true);
+    
+    switch (params.order)
+    {
+        case 8:
+        case 7:
+            leftCutFilterChain.setBypassed<3>(false);
+            rightCutFilterChain.setBypassed<3>(false);
+            *leftCutFilterChain.get<3>().coefficients = *lowCutCoeffArray[3];
+            *rightCutFilterChain.get<3>().coefficients = *lowCutCoeffArray[3];
+        case 6:
+        case 5:
+            leftCutFilterChain.setBypassed<2>(false);
+            rightCutFilterChain.setBypassed<2>(false);
+            *leftCutFilterChain.get<2>().coefficients = *lowCutCoeffArray[2];
+            *rightCutFilterChain.get<2>().coefficients = *lowCutCoeffArray[2];
+        case 4:
+        case 3:
+            leftCutFilterChain.setBypassed<1>(false);
+            rightCutFilterChain.setBypassed<1>(false);
+            *leftCutFilterChain.get<1>().coefficients = *lowCutCoeffArray[1];
+            *rightCutFilterChain.get<1>().coefficients = *lowCutCoeffArray[1];
+        case 2:
+        case 1:
+            leftCutFilterChain.setBypassed<0>(false);
+            rightCutFilterChain.setBypassed<0>(false);
+            *leftCutFilterChain.get<0>().coefficients = *lowCutCoeffArray[0];
+            *rightCutFilterChain.get<0>().coefficients = *lowCutCoeffArray[0];
+    }
 }
 
 
 void Pfmcpp_project11AudioProcessor::updateHighCutCoefficients(const HighCutLowCutParameters &params)
 {
-    auto& leftFilter = leftChain.template get<FilterPosition::HighCut>();
-    auto& rightFilter = rightChain.template get<FilterPosition::HighCut>();
+    auto& leftCutFilterChain = leftChain.template get<FilterPosition::HighCut>();
+    auto& rightCutFilterChain = rightChain.template get<FilterPosition::HighCut>();
     
-    // TODO Fix REFCOUNTEDARRAY COEFF HANDLING
-    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+    auto highCutCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params);
+    
+    /*
+     - Set all cut filters to bypass
+     - Switch statement through order
+     - Fall through to unbypass and apply coeffs
+     */
+    leftCutFilterChain.setBypassed<0>(true);
+    leftCutFilterChain.setBypassed<1>(true);
+    leftCutFilterChain.setBypassed<2>(true);
+    leftCutFilterChain.setBypassed<3>(true);
+    
+    rightCutFilterChain.setBypassed<0>(true);
+    rightCutFilterChain.setBypassed<1>(true);
+    rightCutFilterChain.setBypassed<2>(true);
+    rightCutFilterChain.setBypassed<3>(true);
+    
+    switch (params.order)
+    {
+        case 8:
+        case 7:
+            leftCutFilterChain.setBypassed<3>(false);
+            rightCutFilterChain.setBypassed<3>(false);
+            *leftCutFilterChain.get<3>().coefficients = *highCutCoeffArray[3];
+            *rightCutFilterChain.get<3>().coefficients = *highCutCoeffArray[3];
+        case 6:
+        case 5:
+            leftCutFilterChain.setBypassed<2>(false);
+            rightCutFilterChain.setBypassed<2>(false);
+            *leftCutFilterChain.get<2>().coefficients = *highCutCoeffArray[2];
+            *rightCutFilterChain.get<2>().coefficients = *highCutCoeffArray[2];
+        case 4:
+        case 3:
+            leftCutFilterChain.setBypassed<1>(false);
+            rightCutFilterChain.setBypassed<1>(false);
+            *leftCutFilterChain.get<1>().coefficients = *highCutCoeffArray[1];
+            *rightCutFilterChain.get<1>().coefficients = *highCutCoeffArray[1];
+        case 2:
+        case 1:
+            leftCutFilterChain.setBypassed<0>(false);
+            rightCutFilterChain.setBypassed<0>(false);
+            *leftCutFilterChain.get<0>().coefficients = *highCutCoeffArray[0];
+            *rightCutFilterChain.get<0>().coefficients = *highCutCoeffArray[0];
+    }
+
+//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
+//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
 }
 
 
