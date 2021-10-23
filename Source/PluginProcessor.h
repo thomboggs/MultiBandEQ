@@ -88,9 +88,7 @@ private:
     
     Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> lowCutFifo, highCutFifo;
     Fifo<CoefficientsPtr, 32> filterCoeffFifo;
-    // Maybe make this second one a vector of filters so the number of fifos can be allocated at runtime?
     
-    void updateCutCoefficients (const HighCutLowCutParameters& params, FilterPosition pos);
     void updateLowCutCoefficients (const HighCutLowCutParameters& params);
     void updateHighCutCoefficients (const HighCutLowCutParameters& params);
     

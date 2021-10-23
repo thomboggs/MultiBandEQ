@@ -220,36 +220,7 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     {
         setChainBypass(true, FilterPosition::HighCut);
     }
-    
-//
-//    // Check for Parameters changing
-//    // Check type of filter so you know which filter param struct to use
-//    auto currentFilterType = (FilterInfo::FilterType)apvts.getRawParameterValue(getTypeParamName(0))->load();
-//    if ((currentFilterType == FilterInfo::HighPass) || (currentFilterType == FilterInfo::LowPass))
-//    {
-//        // check if anything has changed
-//        auto tempHighCutLowCutParams = getCutParams(0);
-//
-//        if (currentCutParams != tempHighCutLowCutParams)
-//        {
-//            // if changed, calc new Coeffs
-//            currentCutParams = tempHighCutLowCutParams;
-//            updateCutCoefficients(currentCutParams);
-//        }
-//    }
-//    else
-//    {
-//        // check if anything has changed
-//        auto tempFilterParams = getFilterParams(0);
-//
-//        if (currentFilterParams != tempFilterParams)
-//        {
-//            // if changed, calc new Coeffs
-//            currentFilterParams = tempFilterParams;
-//            updateFilterCoefficients(currentFilterParams);
-//        }
-//    }
-//
+
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
     
@@ -320,10 +291,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
             - IsLowCut = False
      */
     
-    
-    
-//    const int numFilters = 3;
-    
     for ( int i = 0; i < chainLength; ++i)
     {
         // Add Low Cut Params to layout
@@ -340,38 +307,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
         }
         
         createFilterParamas(layout, i);
-        
-//        layout.add(std::make_unique<juce::AudioParameterBool>(getBypassParamName(i),
-//                                                              getBypassParamName(i),
-//                                                              false));
-//
-//        layout.add(std::make_unique<juce::AudioParameterFloat>(getGainParamName(i),
-//                                                               getGainParamName(i),
-//                                                               juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
-//                                                                   0.f));
-//        layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(i),
-//                                                               getQualityParamName(i),
-//                                                               juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-//                                                                   1.f));
-//        layout.add(std::make_unique<juce::AudioParameterFloat>(getFreqParamName(i),
-//                                                               getFreqParamName(i),
-//                                                               juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-//                                                                   500.f));
-//
-//        juce::StringArray stringArray;
-//        auto filterTypeMap = FilterInfo::getFilterTypeMap();
-//        auto it = filterTypeMap.begin();
-//
-//        while (it != filterTypeMap.end())
-//        {
-//            stringArray.add(it->second);
-//            it++;
-//        }
-//
-//        layout.add(std::make_unique<juce::AudioParameterChoice>(getTypeParamName(i),
-//                                                                getTypeParamName(i),
-//                                                                stringArray,
-//                                                                0));
     }
     
     return layout;
@@ -379,31 +314,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
 
 
 //==============================================================================
-void Pfmcpp_project11AudioProcessor::updateCutCoefficients(const HighCutLowCutParameters& params, FilterPosition pos)
-{
-    
-//    auto& leftFilter = leftChain.template get<0>();
-//    auto& rightFilter = rightChain.template get<0>();
-    
-
-//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-}
 
 
 void Pfmcpp_project11AudioProcessor::updateLowCutCoefficients(const HighCutLowCutParameters &params)
 {
-//    auto& leftFilter = leftChain.template get<FilterPosition::LowCut>();
-//    auto& rightFilter = rightChain.template get<FilterPosition::LowCut>();
-    
-//    using IIRCoeffsFloat = juce::dsp::IIR::Coefficients<float>;
-//    auto filterCoeffArray = std::make_unique<juce::ReferenceCountedArray<IIRCoeffsFloat>>(CoefficientsMaker<float>::calcCutCoefficients(params)) ;
-//    auto filterCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params) ;
-//    DBG(filterCoeffArray.size());
-    
-    
-//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
     auto& leftCutFilterChain = leftChain.template get<FilterPosition::LowCut>();
     auto& rightCutFilterChain = rightChain.template get<FilterPosition::LowCut>();
     
@@ -503,9 +417,6 @@ void Pfmcpp_project11AudioProcessor::updateHighCutCoefficients(const HighCutLowC
             *leftCutFilterChain.get<0>().coefficients = *highCutCoeffArray[0];
             *rightCutFilterChain.get<0>().coefficients = *highCutCoeffArray[0];
     }
-
-//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
-//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcCutCoefficients(params)[0];
 }
 
 
