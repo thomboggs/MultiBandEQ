@@ -16,11 +16,11 @@
 //==============================================================================
 /**
 */
-class Pfmcpp_project10AudioProcessorEditor  : public juce::AudioProcessorEditor
+class Pfmcpp_project11AudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    Pfmcpp_project10AudioProcessorEditor (Pfmcpp_project10AudioProcessor&);
-    ~Pfmcpp_project10AudioProcessorEditor();
+    Pfmcpp_project11AudioProcessorEditor (Pfmcpp_project11AudioProcessor&);
+    ~Pfmcpp_project11AudioProcessorEditor();
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -29,7 +29,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    Pfmcpp_project10AudioProcessor& processor;
+    Pfmcpp_project11AudioProcessor& processor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project10AudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessorEditor)
 };
