@@ -12,7 +12,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "FilterParametersBase.h"
-#include "CoefficientsMaker.h"
+//#include "CoefficientsMaker.h"
 #include "Fifo.h"
 
 
@@ -49,7 +49,8 @@ struct FilterCoefficientGenerator : juce::Thread
                 if ( std::is_same_v<ParamType, HighCutLowCutParameters> )
                 {
                     // Calc Cut Parameters
-                    auto cutCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params);
+//                    auto cutCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params);
+                    auto cutCoeffArray = MakeFunction::calcCutCoefficients(params);
                     // check if size > 0
                     if ( cutCoeffArray.size() > 0 )
                     {
@@ -60,7 +61,8 @@ struct FilterCoefficientGenerator : juce::Thread
                 else
                 {
                     // Calc Filter Parameters
-                    auto filterCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(params);
+//                    auto filterCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(params);
+                    auto filterCoeffs = MakeFunction::calcFilterCoefficients(params);
                     // Check if not null
                     if (filterCoeffs.get() != nullptr)
                     {
