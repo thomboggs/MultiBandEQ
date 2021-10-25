@@ -32,11 +32,47 @@ struct ReleasePool : juce::Timer
         stopTimer();
     }
     
-    void add(Ptr ptr);
-    void timerCallback() override;
+    void add(Ptr ptr)
+    {
+        // Toggle addedToFifo to true
+        
+        // To check if on messagethread: use [static bool existsAndIsCurrentThread () noexcept]
+    }
+    
+    void timerCallback() override
+    {
+        // If successfully added
+        if ( addedToFifo.compareAndSetBool(false, true) )
+        {
+            Ptr ptr;
+            
+            while ( releaseFifo.pull(ptr) )
+            {
+                // Check if ptr points to real object
+                if (ptr != nullptr)
+                {
+                    // Check if ptr already exists in the pool
+                    addIfNotAlreadyThere(ptr);
+                    ptr.reset();
+                }
+            }
+        }
+
+        // Delete Everything in the pool with a RefCount <= 1
+        
+        
+    }
     
 private:
-    void addIfNotAlreadyThere(Ptr ptr);
+    void addIfNotAlreadyThere(Ptr ptr)
+    {
+        auto alreadyExists = [ptr] (Ptr poolPtr) {return ptr == poolPtr;};
+        
+        if (!(std::find_if(deletionPool.begin(), deletionPool.end(), alreadyExists)))
+        {
+            
+        }
+    }
     std::vector<Ptr> deletionPool;
     Fifo<Ptr, 1024> releaseFifo;
     juce::Atomic<bool> addedToFifo;
