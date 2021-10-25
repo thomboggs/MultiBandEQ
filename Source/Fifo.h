@@ -94,7 +94,7 @@ struct Fifo
             if constexpr (IsReferenceCountedObjectPtr<T>::value)
             {
                 auto currentBuf = myBuffers[index];
-                jassert(currentBuf.getReferenceCount() > 1);
+                jassert(currentBuf.get() == nullptr || currentBuf->getReferenceCount() > 1);
                 
                 myBuffers[index] = t;
             }
