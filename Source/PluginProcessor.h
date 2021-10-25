@@ -12,8 +12,10 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "FilterParametersBase.h"
+#include "CoefficientsMaker.h"
 #include "FilterInfo.h"
 #include "Fifo.h"
+#include "FilterCoefficientGenerator.h"
 
 
 
@@ -60,10 +62,12 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    // APVTS and Audio Parameter Creation
     static void createCutParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum, const bool isLowCut);
     static void createFilterParamas (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum);
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
+    
 private:
     enum FilterPosition
     {
@@ -100,6 +104,25 @@ private:
     FilterParameters getFilterParams (int bandNum);
     
     
+//    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
+//    FilterCoefficientGenerator<
+//        juce::ReferenceCountedArray<CutCoeffs>,
+//        HighCutLowCutParameters,
+//        CoefficientsMaker<float>,
+//    32> fcgFilter {lowCutFifo , "LowCut Thread"};
+    
+//    =
+//            FilterCoefficientGenerator<
+//                juce::ReferenceCountedArray<CutCoeffs>,
+//                HighCutLowCutParameters,
+//                CoefficientsMaker<float>,
+//                32>
+//            (lowCutFifo , "LowCut Thread");
+    
+    FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> fcgFilter { filterCoeffFifo , "Filter Thread"};
+//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgLowCut {lowCutFifo , "LowCut Thread" };
+//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgHighCut { highCutFifo , "HighCut Thread"};
+//    
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)

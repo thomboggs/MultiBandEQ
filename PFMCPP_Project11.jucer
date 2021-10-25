@@ -4,6 +4,8 @@
               companyName="GCR Audio" jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="ORymcZ" name="Project11">
     <GROUP id="{A92DB368-5243-6129-F1D5-73D06AFB4761}" name="Source">
+      <FILE id="y4cvL8" name="FilterCoefficientGenerator.h" compile="0" resource="0"
+            file="Source/FilterCoefficientGenerator.h"/>
       <FILE id="Mbawwj" name="Decibel.h" compile="0" resource="0" file="Source/Decibel.h"/>
       <FILE id="cgoT2X" name="Fifo.h" compile="0" resource="0" file="Source/Fifo.h"/>
       <FILE id="wIkKgd" name="FilterHelperFunctions.cpp" compile="1" resource="0"

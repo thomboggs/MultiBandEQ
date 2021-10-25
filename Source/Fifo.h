@@ -94,7 +94,7 @@ struct Fifo
             if constexpr (IsReferenceCountedObjectPtr<T>::value)
             {
                 auto currentBuf = myBuffers[index];
-                jassert(currentBuf.getReferenceCount() > 1);
+                jassert(currentBuf.get() == nullptr || currentBuf->getReferenceCount() > 1);
                 
                 myBuffers[index] = t;
             }
@@ -114,7 +114,7 @@ struct Fifo
         if (readHandle.blockSize1 > 0)
         {
             // Cast the readindex to size_t, because the return type is int
-            size_t index = static_cast<size_t>(readHandle.readIndex1);
+            size_t index = static_cast<size_t>(readHandle.startIndex1);
             t = myBuffers[index];
             return true;
         }
