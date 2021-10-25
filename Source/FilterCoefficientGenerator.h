@@ -45,37 +45,48 @@ struct FilterCoefficientGenerator : juce::Thread
     
     void run() override
     {
-        // If parametersChanged == true, compute new coefficients
-        if ( parametersChanged.compareAndSetBool(false, true) )
+        ParamType params;
+        bool shouldExitThread = false;
+        
+        while (true)
         {
-            ParamType params;
-            while (paramFifo.pull(params))
+//            DBG("Thread is Running");
+            
+            // If parametersChanged == true, compute new coefficients
+            if ( parametersChanged.compareAndSetBool(false, true) )
             {
-                if (threadShouldExit())
-                    break;
-                
-                if constexpr ( IsCutParameterType<ParamType>::value )
+                while (paramFifo.pull(params))
                 {
-                    // Calc Cut Parameters
-                    auto cutCoeffArray = MakeFunction::calcCutCoefficients(params);
-                    
-                    if ( cutCoeffArray.size() > 0 )
-                        coefficientsFifo.push(cutCoeffArray);
-                }
-                else
-                {
-                    // Calc Filter Parameters
-                    auto filterCoeffs = MakeFunction::calcFilterCoefficients(params);
-                    
-                    // Check if not null
-                    if (filterCoeffs.get() != nullptr)
-                        coefficientsFifo.push(filterCoeffs);
+                    if (threadShouldExit())
+                    {
+                        shouldExitThread = true;
+                        break;
+                    }
+                    if constexpr ( IsCutParameterType<ParamType>::value )
+                    {
+                        // Calc Cut Parameters
+                        auto cutCoeffArray = MakeFunction::calcCutCoefficients(params);
+                        
+                        if ( cutCoeffArray.size() > 0 )
+                            coefficientsFifo.push(cutCoeffArray);
+                    }
+                    else
+                    {
+                        // Calc Filter Parameters
+                        auto filterCoeffs = MakeFunction::calcFilterCoefficients(params);
+                        
+                        // Check if not null
+                        if (filterCoeffs.get() != nullptr)
+                            coefficientsFifo.push(filterCoeffs);
+                    }
                 }
             }
+            
+            if (shouldExitThread || threadShouldExit()) break;
+            
+            // Wait
+            wait(10);
         }
-        
-        // Wait
-        wait(10);
     }
     
 
