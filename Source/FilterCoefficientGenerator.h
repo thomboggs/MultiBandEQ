@@ -75,8 +75,6 @@ struct FilterCoefficientGenerator : juce::Thread
                 }
             }
             
-            if ( threadShouldExit() ) break;
-            
             // Wait
             wait(10);
         }
