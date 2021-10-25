@@ -10,17 +10,22 @@
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-
 #include "FilterParametersBase.h"
-//#include "CoefficientsMaker.h"
 #include "Fifo.h"
 
 
+//=================================================================================
+template <typename T>
+struct IsCutParameterType : std::false_type { };
 
-template <typename CoefficientType, typename ParamType, typename MakeFunction, size_t Size>
+template <>
+struct IsCutParameterType<HighCutLowCutParameters> : std::true_type { };
+
+//=================================================================================
+template<typename CoefficientType, class ParamType, class MakeFunction, size_t Size>
 struct FilterCoefficientGenerator : juce::Thread
 {
-    FilterCoefficientGenerator()
+    FilterCoefficientGenerator(Fifo<CoefficientType, Size>& fifo_, juce::String threadName) : Thread(threadName), coefficientsFifo(fifo_)
     {
         startThread();
     }
