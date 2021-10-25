@@ -53,8 +53,6 @@ struct FilterCoefficientGenerator : juce::Thread
             {
                 while (paramFifo.pull(params))
                 {
-                    if (threadShouldExit()) break;
-                
                     if constexpr ( IsCutParameterType<ParamType>::value )
                     {
                         // Calc Cut Parameters
@@ -72,6 +70,8 @@ struct FilterCoefficientGenerator : juce::Thread
                         if (filterCoeffs.get() != nullptr)
                             coefficientsFifo.push(filterCoeffs);
                     }
+                    
+                    if (threadShouldExit()) break;
                 }
             }
             
