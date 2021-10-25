@@ -46,22 +46,15 @@ struct FilterCoefficientGenerator : juce::Thread
     void run() override
     {
         ParamType params;
-        bool shouldExitThread = false;
-        
-        while (true)
-        {
-//            DBG("Thread is Running");
-            
+        while ( ! threadShouldExit() )
+        {            
             // If parametersChanged == true, compute new coefficients
             if ( parametersChanged.compareAndSetBool(false, true) )
             {
                 while (paramFifo.pull(params))
                 {
-                    if (threadShouldExit())
-                    {
-                        shouldExitThread = true;
-                        break;
-                    }
+                    if (threadShouldExit()) break;
+                
                     if constexpr ( IsCutParameterType<ParamType>::value )
                     {
                         // Calc Cut Parameters
@@ -82,7 +75,7 @@ struct FilterCoefficientGenerator : juce::Thread
                 }
             }
             
-            if (shouldExitThread || threadShouldExit()) break;
+            if ( threadShouldExit() ) break;
             
             // Wait
             wait(10);
