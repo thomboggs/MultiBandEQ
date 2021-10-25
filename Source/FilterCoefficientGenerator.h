@@ -42,7 +42,7 @@ struct FilterCoefficientGenerator : juce::Thread
         parametersChanged.set(true);
     }
     
-    //
+    
     void run() override
     {
         // If parametersChanged == true, compute new coefficients
@@ -51,29 +51,25 @@ struct FilterCoefficientGenerator : juce::Thread
             ParamType params;
             while (paramFifo.pull(params))
             {
-                if ( std::is_same_v<ParamType, HighCutLowCutParameters> )
+                if (threadShouldExit())
+                    break;
+                
+                if constexpr ( IsCutParameterType<ParamType>::value )
                 {
                     // Calc Cut Parameters
-//                    auto cutCoeffArray = CoefficientsMaker<float>::calcCutCoefficients(params);
                     auto cutCoeffArray = MakeFunction::calcCutCoefficients(params);
-                    // check if size > 0
+                    
                     if ( cutCoeffArray.size() > 0 )
-                    {
-                        // Do I need to std::move?
                         coefficientsFifo.push(cutCoeffArray);
-                    }
                 }
                 else
                 {
                     // Calc Filter Parameters
-//                    auto filterCoeffs = CoefficientsMaker<float>::calcFilterCoefficients(params);
                     auto filterCoeffs = MakeFunction::calcFilterCoefficients(params);
+                    
                     // Check if not null
                     if (filterCoeffs.get() != nullptr)
-                    {
-                        // Do I need to std::move?
                         coefficientsFifo.push(filterCoeffs);
-                    }
                 }
             }
         }

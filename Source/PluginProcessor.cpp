@@ -11,8 +11,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "FilterHelperFunctions.h"
-#include "CoefficientsMaker.h"
-#include "FilterCoefficientGenerator.h"
+
+
 
 
 
@@ -27,8 +27,18 @@ Pfmcpp_project11AudioProcessor::Pfmcpp_project11AudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
+    
 #endif
 {
+//    fcgFilter("My Thread");
+//    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
+//    FilterCoefficientGenerator fcgFilter =
+//        FilterCoefficientGenerator<
+//            juce::ReferenceCountedArray<CutCoeffs>,
+//            HighCutLowCutParameters,
+//            CoefficientsMaker<float>,
+//            32>
+//        (lowCutFifo , "LowCut Thread");
 }
 
 Pfmcpp_project11AudioProcessor::~Pfmcpp_project11AudioProcessor()
