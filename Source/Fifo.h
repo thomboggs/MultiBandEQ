@@ -130,6 +130,11 @@ struct Fifo
     {
         return fifo.getFreeSpace();
     }
+    
+    void exchange(T&& t)
+    {
+        
+    }
 
 private:
     juce::AbstractFifo fifo { Size };

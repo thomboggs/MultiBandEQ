@@ -68,9 +68,10 @@ private:
     {
         auto alreadyExists = [ptr] (Ptr poolPtr) {return ptr == poolPtr;};
         
-        if (!(std::find_if(deletionPool.begin(), deletionPool.end(), alreadyExists)))
+        if ( std::find_if(deletionPool.begin(), deletionPool.end(), alreadyExists) == deletionPool.end() )
         {
-            
+            // Doesn't exist, add to pool
+            deletionPool.push_back(ptr);
         }
     }
     std::vector<Ptr> deletionPool;
