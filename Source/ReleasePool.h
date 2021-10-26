@@ -20,6 +20,7 @@ struct ReleasePool : juce::Timer
 
     ReleasePool()
     {
+//        DBG("POOL is Created");
         // set the size of the deletion pool
         deletionPool.reserve(capacity);
         
@@ -29,11 +30,13 @@ struct ReleasePool : juce::Timer
     
     ~ReleasePool()
     {
+//        DBG("POOL is Destroyed");
         stopTimer();
     }
     
     void add(Ptr ptr)
     {
+        DBG("Adding to Pool");
         // To check if on messagethread: use [static bool existsAndIsCurrentThread ()
         if ( juce::MessageManager::existsAndIsCurrentThread() )
         {
@@ -57,6 +60,7 @@ struct ReleasePool : juce::Timer
     
     void timerCallback() override
     {
+//        DBG("Timer Callback has been Called");
         // If successfully added
         if ( addedToFifo.compareAndSetBool(false, true) )
         {
