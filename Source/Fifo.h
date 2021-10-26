@@ -192,8 +192,6 @@ struct Fifo
                     {
                         // Need to Copy
                         t = buffer[index];
-                        // delete what is in buffer[index]
-                        buffer[index].clear();
                     }
                     else
                     {
@@ -209,8 +207,6 @@ struct Fifo
                         {
                             // Need to Copy
                             t = buffer[index];
-                            // delete what is in buffer[index]
-                            buffer[index].clear();
                         }
                         else
                         {
