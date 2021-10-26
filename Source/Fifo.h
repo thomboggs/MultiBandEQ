@@ -146,9 +146,100 @@ struct Fifo
         return fifo.getFreeSpace();
     }
     
-    void exchange(T&& t)
+    bool exchange(T&& t)
     {
-        
+        auto readHandle = fifo.read(1);
+        if (readHandle.blockSize1 > 0)
+        {
+            // Cast the readindex to size_t, because the return type is int
+            size_t index = static_cast<size_t>(readHandle.startIndex1);
+            
+            /*
+             if T is a reference counted object pointer
+                 swap t with buffer[idx]
+                 make sure buffer[idx] now holds a nullptr
+             else
+                if T is a vector
+                    if t's size is < buffer[idx]'s size,
+                         you can't swap
+                         you need to copy
+                    else t's size is >= buffer[idx]'s size, which means:
+                         you CAN swap.
+                else
+                    if T is a juce::AudioBuffer
+                         if t's size is < buffer[idx]'s size,
+                            you can't swap
+                            you need to copy
+                         else t's size is >= buffer[idx]'s size, which means:
+                            you CAN swap.
+                    else
+                         blindly swap.
+                         and maybe jassert just so you can investigate
+                         if any Ts actually lead to this code path
+                         and determine if you should swap or copy.
+             */
+            
+            if constexpr (IsReferenceCountedObjectPtr<T>::value)
+            {
+                std::swap(myBuffers[index], t);
+                jassert (myBuffers[index] == nullptr);
+                return true;
+            }
+            else
+            {
+                if constexpr (IsVector<T>::value)
+                {
+                    if (t.size() < myBuffers[index].size())
+                    {
+                        // Need to Copy
+                        t = myBuffers[index];
+                        // delete what is in myBuffers[index]
+                        myBuffers[index].clear();
+                        return true;
+                    }
+                    else
+                    {
+                        // Can Swap
+                        std::swap(myBuffers[index], t);
+                        return true;
+                    }
+                }
+                else
+                {
+                    if constexpr (IsAudioBuffer<T>::value)
+                    {
+                        if (t.getNumSamples() < myBuffers[index].getNumSamples())
+                        {
+                            // Need to Copy
+                            t = myBuffers[index];
+                            // delete what is in myBuffers[index]
+                            myBuffers[index].clear();
+                            return true;
+                        }
+                        else
+                        {
+                            // Can Swap
+                            std::swap(myBuffers[index], t);
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        // Blindly Swap
+                        std::swap(myBuffers[index], t);
+                        jassertfalse;
+                        return true;
+                    }
+                }
+            }
+            
+            // Swap instead of pull
+//            t = myBuffers[index];
+//            std::swap(myBuffers[index], t);
+//
+//            return true;
+        }
+        return false;
     }
 
 private:
