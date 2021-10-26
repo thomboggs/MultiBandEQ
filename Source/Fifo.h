@@ -57,18 +57,18 @@ struct Fifo
         
         /*
          Steps to Prepare for AudioBuffer
-         - Loop Through myBuffers
+         - Loop Through buffer
          - Initialize each audioBuffer to correct size
          - Clear Data inside each buffer in the array of buffers
          */
-        for (auto& buffer : myBuffers)
+        for (auto& bufferItem : buffer)
         {
-            buffer.setSize(numChannels,
+            bufferItem.setSize(numChannels,
                            numSamples,
                            false,
                            true,
                            true);
-            buffer.clear();
+            bufferItem.clear();
         }
     }
     
@@ -79,14 +79,14 @@ struct Fifo
         
         /*
          Steps to prepare std::vector<float> buffertype
-         - Loop through all the buffers in myBuffers
+         - Loop through all the buffers in buffer
          - Set the vector to the correct size
          - initialize all data to 0's
          */
-        for (auto& buffer : myBuffers)
+        for (auto& bufferItem : buffer)
         {
-            buffer.clear(); // Leaves vector with size=0
-            buffer.setSize(numElements, 0); // set vector to size numElements and init to 0
+            bufferItem.clear(); // Leaves vector with size=0
+            bufferItem.setSize(numElements, 0); // set vector to size numElements and init to 0
         }
     }
     
@@ -108,14 +108,14 @@ struct Fifo
             
             if constexpr (IsReferenceCountedObjectPtr<T>::value)
             {
-                auto currentBuf = myBuffers[index];
+                auto currentBuf = buffer[index];
                 jassert(currentBuf.get() == nullptr || currentBuf->getReferenceCount() > 1);
                 
-                myBuffers[index] = t;
+                buffer[index] = t;
             }
             else
             {
-                myBuffers[index] = t;
+                buffer[index] = t;
             }
             return true;
         }
@@ -130,7 +130,7 @@ struct Fifo
         {
             // Cast the readindex to size_t, because the return type is int
             size_t index = static_cast<size_t>(readHandle.startIndex1);
-            t = myBuffers[index];
+            t = buffer[index];
             return true;
         }
         return false;
@@ -181,64 +181,60 @@ struct Fifo
             
             if constexpr (IsReferenceCountedObjectPtr<T>::value)
             {
-                std::swap(myBuffers[index], t);
-                jassert (myBuffers[index] == nullptr);
-                return true;
+                std::swap(buffer[index], t);
+                jassert (buffer[index] == nullptr);
             }
             else
             {
                 if constexpr (IsVector<T>::value)
                 {
-                    if (t.size() < myBuffers[index].size())
+                    if (t.size() < buffer[index].size())
                     {
                         // Need to Copy
-                        t = myBuffers[index];
-                        // delete what is in myBuffers[index]
-                        myBuffers[index].clear();
-                        return true;
+                        t = buffer[index];
+                        // delete what is in buffer[index]
+                        buffer[index].clear();
                     }
                     else
                     {
                         // Can Swap
-                        std::swap(myBuffers[index], t);
-                        return true;
+                        std::swap(buffer[index], t);
                     }
                 }
                 else
                 {
                     if constexpr (IsAudioBuffer<T>::value)
                     {
-                        if (t.getNumSamples() < myBuffers[index].getNumSamples())
+                        if (t.getNumSamples() < buffer[index].getNumSamples())
                         {
                             // Need to Copy
-                            t = myBuffers[index];
-                            // delete what is in myBuffers[index]
-                            myBuffers[index].clear();
-                            return true;
+                            t = buffer[index];
+                            // delete what is in buffer[index]
+                            buffer[index].clear();
                         }
                         else
                         {
                             // Can Swap
-                            std::swap(myBuffers[index], t);
-                            return true;
+                            std::swap(buffer[index], t);
                         }
                     }
                     else
                     {
                         // Blindly Swap
-                        std::swap(myBuffers[index], t);
+                        std::swap(buffer[index], t);
                         jassertfalse; // To see if anything ends up here
-                        return true;
                     }
                 }
             }
+            
+            return true;
         }
         return false;
     }
 
 private:
     juce::AbstractFifo fifo { Size };
-    std::array<T, Size> myBuffers;
+    std::array<T, Size> buffer;
     size_t bufferSize;
 };
 
