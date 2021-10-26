@@ -82,14 +82,14 @@ struct ReleasePool : juce::Timer
         // Delete Everything in the pool with a RefCount <= 1
         deletionPool.erase( std::remove_if(deletionPool.begin(),
                                            deletionPool.end(),
-                                           [] (Ptr ptr) { return ptr->getReferenceCount() <= 1; }),
+                                           [] (Ptr& ptr) { return ptr->getReferenceCount() <= 1; }),
                                    deletionPool.end() );
     }
     
 private:
     void addIfNotAlreadyThere(Ptr ptr)
     {
-        auto alreadyExists = [ptr] (Ptr poolPtr) {return ptr == poolPtr;};
+        auto alreadyExists = [ptr] (const Ptr& poolPtr) {return ptr == poolPtr;};
         
         if ( std::find_if(deletionPool.begin(), deletionPool.end(), alreadyExists) == deletionPool.end() )
         {
