@@ -24,6 +24,21 @@ struct IsReferenceCountedObjectPtr : std::false_type { };
 template <typename T>
 struct IsReferenceCountedObjectPtr<juce::ReferenceCountedObjectPtr<T>> : std::true_type { };
 
+// Check For Vector
+template <typename T>
+struct IsVector : std::false_type { };
+
+template <typename T, typename A>
+struct IsVector<std::vector<T, A>> : std::true_type { };
+
+// Check For AudioBuffer
+template <typename T>
+struct IsAudioBuffer : std::false_type { };
+
+template <typename T>
+struct IsAudioBuffer<juce::AudioBuffer<T>> : std::true_type { };
+
+
 //=============================================================================
 /*
  Fifo
