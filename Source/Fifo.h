@@ -227,17 +227,11 @@ struct Fifo
                     {
                         // Blindly Swap
                         std::swap(myBuffers[index], t);
-                        jassertfalse;
+                        jassertfalse; // To see if anything ends up here
                         return true;
                     }
                 }
             }
-            
-            // Swap instead of pull
-//            t = myBuffers[index];
-//            std::swap(myBuffers[index], t);
-//
-//            return true;
         }
         return false;
     }
