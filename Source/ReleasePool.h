@@ -21,7 +21,7 @@ struct ReleasePool : juce::Timer
     ReleasePool()
     {
         // set the size of the deletion pool
-        deletionPool.reserve(1024);
+        deletionPool.reserve(capacity);
         
         // Start the timer
         startTimer(2000);
@@ -34,9 +34,25 @@ struct ReleasePool : juce::Timer
     
     void add(Ptr ptr)
     {
-        // Toggle addedToFifo to true
-        
-        // To check if on messagethread: use [static bool existsAndIsCurrentThread () noexcept]
+        // To check if on messagethread: use [static bool existsAndIsCurrentThread ()
+        if ( juce::MessageManager::existsAndIsCurrentThread() )
+        {
+            addIfNotAlreadyThere(ptr);
+            ptr.reset();
+        }
+        else
+        {
+            // Add to Fifo
+            if (releaseFifo.push(ptr) )
+            {
+                // Toggle addedToFifo to true
+                addedToFifo.set(true);
+            }
+            else
+            {
+                jassertfalse; // FIFO likely too small
+            }
+        }
     }
     
     void timerCallback() override
@@ -46,7 +62,8 @@ struct ReleasePool : juce::Timer
         {
             Ptr ptr;
             
-            while ( releaseFifo.pull(ptr) )
+            // need to make this exchange
+            while ( releaseFifo.exchange(std::move(ptr)) )
             {
                 // Check if ptr points to real object
                 if (ptr != nullptr)
@@ -59,8 +76,10 @@ struct ReleasePool : juce::Timer
         }
 
         // Delete Everything in the pool with a RefCount <= 1
-        
-        
+        deletionPool.erase( std::remove_if(deletionPool.begin(),
+                                           deletionPool.end(),
+                                           [] (Ptr ptr) { return ptr->getReferenceCount() <= 1; }),
+                                   deletionPool.end() );
     }
     
 private:
@@ -74,7 +93,8 @@ private:
             deletionPool.push_back(ptr);
         }
     }
+    static const size_t capacity { 1024 };
     std::vector<Ptr> deletionPool;
-    Fifo<Ptr, 1024> releaseFifo;
+    Fifo<Ptr, capacity> releaseFifo;
     juce::Atomic<bool> addedToFifo;
 };
