@@ -165,72 +165,78 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    /*
-     Low Cut
-     */
-    // Check for not bypassed
-    bool filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::LowCut)))->get();
-    if ( !filterBypassed )
-    {
-        setChainBypass(false, FilterPosition::LowCut);
-        
-        auto tempHighCutLowCutParams = getCutParams(0);
-        if (currentLowCutParams != tempHighCutLowCutParams)
-        {
-            // if changed, calc new Coeffs
-//            DBG("Updating Coefficients");
-            currentLowCutParams = tempHighCutLowCutParams;
-            updateLowCutCoefficients(currentLowCutParams);
-        }
-    }
-    else
-    {
-        setChainBypass(true, FilterPosition::LowCut);
-    }
+//    /*
+//     Low Cut
+//     */
+//    // Check for not bypassed
+//    bool filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::LowCut)))->get();
+//    if ( !filterBypassed )
+//    {
+//        setChainBypass(false, FilterPosition::LowCut);
+//
+//        auto tempHighCutLowCutParams = getCutParams(0);
+//        if (currentLowCutParams != tempHighCutLowCutParams)
+//        {
+//            // if changed, calc new Coeffs
+////            DBG("Updating Coefficients");
+//            currentLowCutParams = tempHighCutLowCutParams;
+//            updateLowCutCoefficients(currentLowCutParams);
+//        }
+//    }
+//    else
+//    {
+//        setChainBypass(true, FilterPosition::LowCut);
+//    }
+//
+//    /*
+//     Multi1
+//     */
+//    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::Multi1)))->get();
+//    if ( !filterBypassed )
+//    {
+//        setChainBypass(false, FilterPosition::Multi1);
+//
+//        // Middle Filter Params
+//        auto tempFilterParams = getFilterParams(FilterPosition::Multi1);
+//
+//        if (currentFilterParams != tempFilterParams)
+//        {
+//            // if changed, calc new Coeffs
+//            currentFilterParams = tempFilterParams;
+//            updateFilterCoefficients(currentFilterParams, FilterPosition::Multi1);
+//
+//
+//        }
+//    }
+//    else
+//    {
+//        setChainBypass(true, FilterPosition::Multi1);
+//    }
+//
+//    /*
+//     High Cut Filter
+//     */
+//    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::HighCut)))->get();
+//    if ( !filterBypassed)
+//    {
+//        setChainBypass(false, FilterPosition::HighCut);
+//
+//        auto tempHighCutLowCutParams = getCutParams(FilterPosition::HighCut);
+//        if (currentHighCutParams != tempHighCutLowCutParams)
+//        {
+//            // if changed, calc new Coeffs
+//            currentHighCutParams = tempHighCutLowCutParams;
+//            updateHighCutCoefficients(currentHighCutParams);
+//        }
+//    }
+//    else
+//    {
+//        setChainBypass(true, FilterPosition::HighCut);
+//    }
     
-    /*
-     Multi1
-     */
-    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::Multi1)))->get();
-    if ( !filterBypassed )
-    {
-        setChainBypass(false, FilterPosition::Multi1);
-        
-        // Middle Filter Params
-        auto tempFilterParams = getFilterParams(FilterPosition::Multi1);
-        
-        if (currentFilterParams != tempFilterParams)
-        {
-            // if changed, calc new Coeffs
-            currentFilterParams = tempFilterParams;
-            updateFilterCoefficients(currentFilterParams, FilterPosition::Multi1);
-        }
-    }
-    else
-    {
-        setChainBypass(true, FilterPosition::Multi1);
-    }
+    updateParams();
     
-    /*
-     High Cut Filter
-     */
-    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::HighCut)))->get();
-    if ( !filterBypassed)
-    {
-        setChainBypass(false, FilterPosition::HighCut);
-        
-        auto tempHighCutLowCutParams = getCutParams(FilterPosition::HighCut);
-        if (currentHighCutParams != tempHighCutLowCutParams)
-        {
-            // if changed, calc new Coeffs
-            currentHighCutParams = tempHighCutLowCutParams;
-            updateHighCutCoefficients(currentHighCutParams);
-        }
-    }
-    else
-    {
-        setChainBypass(true, FilterPosition::HighCut);
-    }
+    refreshFilters();
 
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
@@ -433,11 +439,19 @@ void Pfmcpp_project11AudioProcessor::updateHighCutCoefficients(const HighCutLowC
 
 void Pfmcpp_project11AudioProcessor::updateFilterCoefficients(const FilterParameters& params, const int filterIndex)
 {
+    leftFilterFCG.changeParameters(currentFilterParams);
+    rightFilterFCG.changeParameters(currentFilterParams);
+    
     auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
     auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
     
-    *leftFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
-    *rightFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
+//    *leftFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
+//    *rightFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
+    leftReleasePool.add(leftFilter.coefficients);
+    rightReleasePool.add(rightFilter.coefficients);
+    
+    leftFilterCoeffFifo.pull(leftFilter.coefficients);
+    rightFilterCoeffFifo.pull(rightFilter.coefficients);
 }
 
 
@@ -594,6 +608,117 @@ void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed, Filte
             rightChain.template setBypassed<2>(isBypassed);
             break;
     }
+}
+
+
+void Pfmcpp_project11AudioProcessor::updateParams()
+{
+    // Check if params have changed if so, update via fcg
+    /*
+     Low Cut
+     */
+    // Check for not bypassed
+    bool filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::LowCut)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass(false, FilterPosition::LowCut);
+        
+        auto tempHighCutLowCutParams = getCutParams(0);
+        if (currentLowCutParams != tempHighCutLowCutParams)
+        {
+            // if changed, calc new Coeffs
+//            DBG("Updating Coefficients");
+            currentLowCutParams = tempHighCutLowCutParams;
+            updateLowCutCoefficients(currentLowCutParams);
+        }
+    }
+    else
+    {
+        setChainBypass(true, FilterPosition::LowCut);
+    }
+    
+    /*
+     Multi1
+     */
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::Multi1)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass(false, FilterPosition::Multi1);
+        
+        // Middle Filter Params
+        auto tempFilterParams = getFilterParams(FilterPosition::Multi1);
+        
+        if (currentFilterParams != tempFilterParams)
+        {
+            // if changed, calc new Coeffs
+            currentFilterParams = tempFilterParams;
+            leftFilterFCG.changeParameters(currentFilterParams);
+            rightFilterFCG.changeParameters(currentFilterParams);
+            
+            
+        }
+    }
+    else
+    {
+        setChainBypass(true, FilterPosition::Multi1);
+    }
+    
+    /*
+     High Cut Filter
+     */
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(FilterPosition::HighCut)))->get();
+    if ( !filterBypassed)
+    {
+        setChainBypass(false, FilterPosition::HighCut);
+        
+        auto tempHighCutLowCutParams = getCutParams(FilterPosition::HighCut);
+        if (currentHighCutParams != tempHighCutLowCutParams)
+        {
+            // if changed, calc new Coeffs
+            currentHighCutParams = tempHighCutLowCutParams;
+            updateHighCutCoefficients(currentHighCutParams);
+        }
+    }
+    else
+    {
+        setChainBypass(true, FilterPosition::HighCut);
+    }
+}
+
+
+
+void Pfmcpp_project11AudioProcessor::refreshFilters()
+{
+    
+    if ( leftFilterCoeffFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
+        if ( leftFilterCoeffFifo.pull(leftFilter.coefficients) )
+        {
+            leftReleasePool.add(leftFilter.coefficients);
+        }
+    }
+    
+    if ( rightFilterCoeffFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& rightFilter = leftChain.template get<FilterPosition::Multi1>();
+        if ( rightFilterCoeffFifo.pull(rightFilter.coefficients) )
+        {
+            rightReleasePool.add(rightFilter.coefficients);
+        }
+    }
+    
+//    auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
+//    auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
+//
+//    if ( leftFilterCoeffFifo.pull(leftFilter.coefficients) )
+//    {
+//        leftReleasePool.add(leftFilter.coefficients);
+//    }
+//    if ( rightFilterCoeffFifo.pull(rightFilter.coefficients) )
+//    {
+//        rightReleasePool.add(rightFilter.coefficients);
+//    }
 }
 
 
