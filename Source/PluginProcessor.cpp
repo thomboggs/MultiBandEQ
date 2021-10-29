@@ -447,8 +447,8 @@ void Pfmcpp_project11AudioProcessor::updateFilterCoefficients(const FilterParame
     
 //    *leftFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
 //    *rightFilter.coefficients = *CoefficientsMaker<float>::calcFilterCoefficients(params);
-    leftReleasePool.add(leftFilter.coefficients);
-    rightReleasePool.add(rightFilter.coefficients);
+    leftFilterReleasePool.add(leftFilter.coefficients);
+    rightFilterReleasePool.add(rightFilter.coefficients);
     
     leftFilterCoeffFifo.pull(leftFilter.coefficients);
     rightFilterCoeffFifo.pull(rightFilter.coefficients);
@@ -629,7 +629,9 @@ void Pfmcpp_project11AudioProcessor::updateParams()
             // if changed, calc new Coeffs
 //            DBG("Updating Coefficients");
             currentLowCutParams = tempHighCutLowCutParams;
-            updateLowCutCoefficients(currentLowCutParams);
+//            updateLowCutCoefficients(currentLowCutParams);
+            leftLowCutFCG.changeParameters(currentLowCutParams);
+            rightLowCutFCG.changeParameters(currentLowCutParams);
         }
     }
     else
@@ -676,7 +678,9 @@ void Pfmcpp_project11AudioProcessor::updateParams()
         {
             // if changed, calc new Coeffs
             currentHighCutParams = tempHighCutLowCutParams;
-            updateHighCutCoefficients(currentHighCutParams);
+//            updateHighCutCoefficients(currentHighCutParams);
+            leftHighCutFCG.changeParameters(currentHighCutParams);
+            rightHighCutFCG.changeParameters(currentHighCutParams);
         }
     }
     else
@@ -686,16 +690,19 @@ void Pfmcpp_project11AudioProcessor::updateParams()
 }
 
 
-
 void Pfmcpp_project11AudioProcessor::refreshFilters()
 {
+    refreshLowCutFilters();
     
+    refreshHighCutFilters();
+    
+    // Peak Filter
     if ( leftFilterCoeffFifo.getNumAvailableForReading() > 0 )
     {
         auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
         if ( leftFilterCoeffFifo.pull(leftFilter.coefficients) )
         {
-            leftReleasePool.add(leftFilter.coefficients);
+            leftFilterReleasePool.add(leftFilter.coefficients);
         }
     }
     
@@ -704,23 +711,228 @@ void Pfmcpp_project11AudioProcessor::refreshFilters()
         auto& rightFilter = leftChain.template get<FilterPosition::Multi1>();
         if ( rightFilterCoeffFifo.pull(rightFilter.coefficients) )
         {
-            rightReleasePool.add(rightFilter.coefficients);
+            rightFilterReleasePool.add(rightFilter.coefficients);
+        }
+    }
+}
+
+template <typename FilterPos>
+void Pfmcpp_project11AudioProcessor::refreshLowCutFiltersTest (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
+                                                               FilterChain& chain,
+                                                               ReleasePool<CoefficientsPtr>& cutPool)
+{
+    // Test if I can make this function more generic
+    // Refresh  generic Cut filter
+    // generic side
+    if ( cutFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& CutFilterChain = chain.template get<FilterPos>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+    
+        if ( cutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                CutFilterChain.setBypassed<0>(true);
+                CutFilterChain.setBypassed<1>(true);
+                CutFilterChain.setBypassed<2>(true);
+                CutFilterChain.setBypassed<3>(true);
+  
+                switch (tempSize)
+                {
+                    case 4:
+                        CutFilterChain.setBypassed<3>(false);
+                        *CutFilterChain.template get<3>().coefficients = *tempArray[3];
+                        cutPool.add(tempArray[3]);
+                    case 3:
+                        CutFilterChain.setBypassed<2>(false);
+                        *CutFilterChain.template get<2>().coefficients = *tempArray[2];
+                        cutPool.add(tempArray[2]);
+                    case 2:
+                        CutFilterChain.setBypassed<1>(false);
+                        *CutFilterChain.template get<1>().coefficients = *tempArray[1];
+                        cutPool.add(tempArray[1]);
+                    case 1:
+                        CutFilterChain.setBypassed<0>(false);
+                        *CutFilterChain.template get<0>().coefficients = *tempArray[0];
+                        cutPool.add(tempArray[0]);
+                }
+            }
         }
     }
     
-//    auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
-//    auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
-//
-//    if ( leftFilterCoeffFifo.pull(leftFilter.coefficients) )
-//    {
-//        leftReleasePool.add(leftFilter.coefficients);
-//    }
-//    if ( rightFilterCoeffFifo.pull(rightFilter.coefficients) )
-//    {
-//        rightReleasePool.add(rightFilter.coefficients);
-//    }
+    
+    
+    
+    
+    
+    
 }
 
+
+
+void Pfmcpp_project11AudioProcessor::refreshLowCutFilters ()
+{
+    // Refresh Low Cut
+    // Left
+    if ( leftLowCutFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& leftLowCutFilterChain = leftChain.template get<FilterPosition::LowCut>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+    
+        if ( leftLowCutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                leftLowCutFilterChain.setBypassed<0>(true);
+                leftLowCutFilterChain.setBypassed<1>(true);
+                leftLowCutFilterChain.setBypassed<2>(true);
+                leftLowCutFilterChain.setBypassed<3>(true);
+  
+                switch (tempSize)
+                {
+                    case 4:
+                        leftLowCutFilterChain.setBypassed<3>(false);
+                        *leftLowCutFilterChain.get<3>().coefficients = *tempArray[3];
+                        leftLowCutReleasePool.add(tempArray[3]);
+                    case 3:
+                        leftLowCutFilterChain.setBypassed<2>(false);
+                        *leftLowCutFilterChain.get<2>().coefficients = *tempArray[2];
+                        leftLowCutReleasePool.add(tempArray[2]);
+                    case 2:
+                        leftLowCutFilterChain.setBypassed<1>(false);
+                        *leftLowCutFilterChain.get<1>().coefficients = *tempArray[1];
+                        leftLowCutReleasePool.add(tempArray[1]);
+                    case 1:
+                        leftLowCutFilterChain.setBypassed<0>(false);
+                        *leftLowCutFilterChain.get<0>().coefficients = *tempArray[0];
+                        leftLowCutReleasePool.add(tempArray[0]);
+                }
+            }
+        }
+    }
+    
+    if ( rightLowCutFifo.getNumAvailableForReading() > 0)
+    {
+        auto& rightLowCutFilterChain = rightChain.template get<FilterPosition::LowCut>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+        if ( rightLowCutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                rightLowCutFilterChain.setBypassed<0>(true);
+                rightLowCutFilterChain.setBypassed<1>(true);
+                rightLowCutFilterChain.setBypassed<2>(true);
+                rightLowCutFilterChain.setBypassed<3>(true);
+                
+                switch (tempSize)
+                {
+                    case 4:
+                        rightLowCutFilterChain.setBypassed<3>(false);
+                        *rightLowCutFilterChain.get<3>().coefficients = *tempArray[3];
+                        rightLowCutReleasePool.add(tempArray[3]);
+                    case 3:
+                        rightLowCutFilterChain.setBypassed<2>(false);
+                        *rightLowCutFilterChain.get<2>().coefficients = *tempArray[2];
+                        rightLowCutReleasePool.add(tempArray[2]);
+                    case 2:
+                        rightLowCutFilterChain.setBypassed<1>(false);
+                        *rightLowCutFilterChain.get<1>().coefficients = *tempArray[1];
+                        rightLowCutReleasePool.add(tempArray[1]);
+                    case 1:
+                        rightLowCutFilterChain.setBypassed<0>(false);
+                        *rightLowCutFilterChain.get<0>().coefficients = *tempArray[0];
+                        rightLowCutReleasePool.add(tempArray[0]);
+                }
+            }
+        }
+    }
+}
+
+
+void Pfmcpp_project11AudioProcessor::refreshHighCutFilters ()
+{
+    // Refresh High Cut
+    // Left
+    if ( leftHighCutFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& leftHighCutFilterChain = leftChain.template get<FilterPosition::HighCut>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+    
+        if ( leftHighCutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                leftHighCutFilterChain.setBypassed<0>(true);
+                leftHighCutFilterChain.setBypassed<1>(true);
+                leftHighCutFilterChain.setBypassed<2>(true);
+                leftHighCutFilterChain.setBypassed<3>(true);
+  
+                switch (tempSize)
+                {
+                    case 4:
+                        leftHighCutFilterChain.setBypassed<3>(false);
+                        *leftHighCutFilterChain.get<3>().coefficients = *tempArray[3];
+                        leftHighCutReleasePool.add(tempArray[3]);
+                    case 3:
+                        leftHighCutFilterChain.setBypassed<2>(false);
+                        *leftHighCutFilterChain.get<2>().coefficients = *tempArray[2];
+                        leftHighCutReleasePool.add(tempArray[2]);
+                    case 2:
+                        leftHighCutFilterChain.setBypassed<1>(false);
+                        *leftHighCutFilterChain.get<1>().coefficients = *tempArray[1];
+                        leftHighCutReleasePool.add(tempArray[1]);
+                    case 1:
+                        leftHighCutFilterChain.setBypassed<0>(false);
+                        *leftHighCutFilterChain.get<0>().coefficients = *tempArray[0];
+                        leftHighCutReleasePool.add(tempArray[0]);
+                }
+            }
+        }
+    }
+    
+    // Right
+    if ( rightHighCutFifo.getNumAvailableForReading() > 0)
+    {
+        auto& rightHighCutFilterChain = rightChain.template get<FilterPosition::HighCut>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+        if ( rightHighCutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                rightHighCutFilterChain.setBypassed<0>(true);
+                rightHighCutFilterChain.setBypassed<1>(true);
+                rightHighCutFilterChain.setBypassed<2>(true);
+                rightHighCutFilterChain.setBypassed<3>(true);
+                
+                switch (tempSize)
+                {
+                    case 4:
+                        rightHighCutFilterChain.setBypassed<3>(false);
+                        *rightHighCutFilterChain.get<3>().coefficients = *tempArray[3];
+                        rightHighCutReleasePool.add(tempArray[3]);
+                    case 3:
+                        rightHighCutFilterChain.setBypassed<2>(false);
+                        *rightHighCutFilterChain.get<2>().coefficients = *tempArray[2];
+                        rightHighCutReleasePool.add(tempArray[2]);
+                    case 2:
+                        rightHighCutFilterChain.setBypassed<1>(false);
+                        *rightHighCutFilterChain.get<1>().coefficients = *tempArray[1];
+                        rightHighCutReleasePool.add(tempArray[1]);
+                    case 1:
+                        rightHighCutFilterChain.setBypassed<0>(false);
+                        *rightHighCutFilterChain.get<0>().coefficients = *tempArray[0];
+                        rightHighCutReleasePool.add(tempArray[0]);
+                }
+            }
+        }
+    }
+}
 
 //==============================================================================
 // This creates new instances of the plugin..
