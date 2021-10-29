@@ -16,6 +16,7 @@
 #include "FilterInfo.h"
 #include "Fifo.h"
 #include "FilterCoefficientGenerator.h"
+#include "ReleasePool.h"
 
 
 
@@ -122,6 +123,8 @@ private:
     FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> fcgFilter { filterCoeffFifo , "Filter Thread"};
 //    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgLowCut {lowCutFifo , "LowCut Thread" };
 //    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgHighCut { highCutFifo , "HighCut Thread"};
+    
+    ReleasePool<CoefficientsPtr> rPool { };
 //    
     
     //==============================================================================
