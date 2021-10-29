@@ -98,22 +98,35 @@ private:
     void setChainBypass(const bool isBypassed, FilterPosition pos);
     
     void updateParams ();
+    
+    template <typename FilterPosition>
+    void refreshLowCutFiltersTest (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
+                                   FilterChain& chain,
+                                   ReleasePool<CoefficientsPtr>& cutPool);
+    void refreshLowCutFilters ();
+    void refreshHighCutFilters ();
     void refreshFilters ();
+    
 //
     HighCutLowCutParameters getCutParams (int bandNum);
     FilterParameters getFilterParams (int bandNum);
     
     
 //    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
-    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> lowCutFifo, highCutFifo;
+    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftLowCutFifo, rightLowCutFifo;
+    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftHighCutFifo, rightHighCutFifo;
     Fifo<CoefficientsPtr, 32> leftFilterCoeffFifo, rightFilterCoeffFifo;
     
     FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> leftFilterFCG { leftFilterCoeffFifo , "Left Filter Thread"};
     FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> rightFilterFCG { rightFilterCoeffFifo , "Right Filter Thread"};
-//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgLowCut {lowCutFifo , "LowCut Thread" };
-//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> fcgHighCut { highCutFifo , "HighCut Thread"};
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> leftLowCutFCG {leftLowCutFifo , "Left LowCut Thread" };
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> rightLowCutFCG {rightLowCutFifo , "Right LowCut Thread" };
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> leftHighCutFCG {leftHighCutFifo , "Left HighCut Thread" };
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> rightHighCutFCG {rightHighCutFifo , "Right HighCut Thread" };
     
-    ReleasePool<CoefficientsPtr> leftReleasePool { }, rightReleasePool { };
+    ReleasePool<CoefficientsPtr> leftFilterReleasePool { }, rightFilterReleasePool { };
+    ReleasePool<CoefficientsPtr> leftLowCutReleasePool { }, rightLowCutReleasePool { };
+    ReleasePool<CoefficientsPtr> leftHighCutReleasePool { }, rightHighCutReleasePool { };
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
