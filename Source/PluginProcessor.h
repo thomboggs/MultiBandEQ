@@ -99,20 +99,18 @@ private:
     
     void updateParams ();
     
-    template <typename FilterPosition>
-    void refreshLowCutFiltersTest (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
-                                   FilterChain& chain,
-                                   ReleasePool<CoefficientsPtr>& cutPool);
-    void refreshLowCutFilters ();
-    void refreshHighCutFilters ();
+    void refreshLowCutFilter (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
+                              FilterChain& chain,
+                              ReleasePool<CoefficientsPtr>& cutPool);
+    void refreshHighCutFilter (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
+                              FilterChain& chain,
+                              ReleasePool<CoefficientsPtr>& cutPool);
     void refreshFilters ();
     
-//
     HighCutLowCutParameters getCutParams (int bandNum);
     FilterParameters getFilterParams (int bandNum);
     
     
-//    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
     Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftLowCutFifo, rightLowCutFifo;
     Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftHighCutFifo, rightHighCutFifo;
     Fifo<CoefficientsPtr, 32> leftFilterCoeffFifo, rightFilterCoeffFifo;
