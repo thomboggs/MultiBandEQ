@@ -91,10 +91,6 @@ private:
     using CoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
     using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
     
-    void updateLowCutCoefficients (const HighCutLowCutParameters& params);
-    void updateHighCutCoefficients (const HighCutLowCutParameters& params);
-    void updateFilterCoefficients (const FilterParameters& params, const int filterIndex);
-    
     void setChainBypass(const bool isBypassed, FilterPosition pos);
     
     void updateParams ();
