@@ -707,21 +707,25 @@ void Pfmcpp_project11AudioProcessor::refreshFilters()
                         rightHighCutReleasePool);
     
     // Peak Filter
+    CoefficientsPtr ptr;
+    
     if ( leftFilterCoeffFifo.getNumAvailableForReading() > 0 )
     {
         auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
-        if ( leftFilterCoeffFifo.pull(leftFilter.coefficients) )
+        if ( leftFilterCoeffFifo.pull(ptr) )
         {
-            leftFilterReleasePool.add(leftFilter.coefficients);
+            leftFilterReleasePool.add(ptr);
+            *(leftFilter.coefficients) = *ptr;
         }
     }
     
     if ( rightFilterCoeffFifo.getNumAvailableForReading() > 0 )
     {
-        auto& rightFilter = leftChain.template get<FilterPosition::Multi1>();
-        if ( rightFilterCoeffFifo.pull(rightFilter.coefficients) )
+        auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
+        if ( rightFilterCoeffFifo.pull(ptr) )
         {
-            rightFilterReleasePool.add(rightFilter.coefficients);
+            rightFilterReleasePool.add(ptr);
+            *(rightFilter.coefficients) = *ptr;
         }
     }
 }
