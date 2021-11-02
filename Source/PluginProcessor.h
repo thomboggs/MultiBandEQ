@@ -101,6 +101,14 @@ private:
     void refreshHighCutFilter (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
                               FilterChain& chain,
                               ReleasePool<CoefficientsPtr>& cutPool);
+    
+    template<int Index, typename FifoType, typename Chain, typename Pool>
+    void refreshCutFilter (FifoType& cutFifo, Chain& chain, Pool& cutPool);
+    
+    
+    template<int Index, typename FifoType, typename Chain, typename Pool>
+    void refreshFilter (FifoType& filterFifo, Chain& chain, Pool& filterPool);
+    
     void refreshFilters ();
     
     HighCutLowCutParameters getCutParams (int bandNum);
@@ -121,6 +129,10 @@ private:
     ReleasePool<CoefficientsPtr> leftFilterReleasePool { }, rightFilterReleasePool { };
     ReleasePool<CoefficientsPtr> leftLowCutReleasePool { }, rightLowCutReleasePool { };
     ReleasePool<CoefficientsPtr> leftHighCutReleasePool { }, rightHighCutReleasePool { };
+    
+    template<int Index, typename Link, typename ArrayType, typename Pool>
+    void update(Link& link, ArrayType& tempArray, Pool& pool);
+    
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)

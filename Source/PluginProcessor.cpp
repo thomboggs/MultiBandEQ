@@ -190,7 +190,7 @@ bool Pfmcpp_project11AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Pfmcpp_project11AudioProcessor::createEditor()
 {
-//    return new Pfmcpp_project10AudioProcessorEditor (*this);
+//    return new Pfmcpp_project11AudioProcessorEditor (*this);
     return new juce::GenericAudioProcessorEditor(*this);
 }
 
@@ -493,42 +493,48 @@ void Pfmcpp_project11AudioProcessor::updateParams()
 
 void Pfmcpp_project11AudioProcessor::refreshFilters()
 {
-    refreshLowCutFilter(leftLowCutFifo,
-                        leftChain,
-                        leftLowCutReleasePool);
-    refreshLowCutFilter(rightLowCutFifo,
-                        rightChain,
-                        rightLowCutReleasePool);
+//    refreshLowCutFilter(leftLowCutFifo,
+//                        leftChain,
+//                        leftLowCutReleasePool);
+    refreshCutFilter<FilterPosition::LowCut> (leftLowCutFifo, leftChain, leftLowCutReleasePool);
+//    refreshLowCutFilter(rightLowCutFifo,
+//                        rightChain,
+//                        rightLowCutReleasePool);
+    refreshCutFilter<FilterPosition::LowCut> (rightLowCutFifo, rightChain, rightLowCutReleasePool);
     
-    refreshHighCutFilter(leftHighCutFifo,
-                        leftChain,
-                        leftHighCutReleasePool);
-    refreshHighCutFilter(rightHighCutFifo,
-                        rightChain,
-                        rightHighCutReleasePool);
+//    refreshHighCutFilter(leftHighCutFifo,
+//                        leftChain,
+//                        leftHighCutReleasePool);
+    refreshCutFilter<FilterPosition::HighCut> (leftHighCutFifo, leftChain, leftHighCutReleasePool);
+//    refreshHighCutFilter(rightHighCutFifo,
+//                        rightChain,
+//                        rightHighCutReleasePool);
+    refreshCutFilter<FilterPosition::HighCut> (rightHighCutFifo, rightChain, rightHighCutReleasePool);
     
     // Peak Filter
-    CoefficientsPtr ptr;
+//    CoefficientsPtr ptr;
+//
+//    if ( leftFilterCoeffFifo.getNumAvailableForReading() > 0 )
+//    {
+//        auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
+//        if ( leftFilterCoeffFifo.pull(ptr) )
+//        {
+//            leftFilterReleasePool.add(ptr);
+//            *(leftFilter.coefficients) = *ptr;
+//        }
+//    }
+    refreshFilter<FilterPosition::Multi1> ( leftFilterCoeffFifo, leftChain, leftFilterReleasePool);
     
-    if ( leftFilterCoeffFifo.getNumAvailableForReading() > 0 )
-    {
-        auto& leftFilter = leftChain.template get<FilterPosition::Multi1>();
-        if ( leftFilterCoeffFifo.pull(ptr) )
-        {
-            leftFilterReleasePool.add(ptr);
-            *(leftFilter.coefficients) = *ptr;
-        }
-    }
-    
-    if ( rightFilterCoeffFifo.getNumAvailableForReading() > 0 )
-    {
-        auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
-        if ( rightFilterCoeffFifo.pull(ptr) )
-        {
-            rightFilterReleasePool.add(ptr);
-            *(rightFilter.coefficients) = *ptr;
-        }
-    }
+//    if ( rightFilterCoeffFifo.getNumAvailableForReading() > 0 )
+//    {
+//        auto& rightFilter = rightChain.template get<FilterPosition::Multi1>();
+//        if ( rightFilterCoeffFifo.pull(ptr) )
+//        {
+//            rightFilterReleasePool.add(ptr);
+//            *(rightFilter.coefficients) = *ptr;
+//        }
+//    }
+    refreshFilter<FilterPosition::Multi1> ( rightFilterCoeffFifo, rightChain, rightFilterReleasePool);
 }
 
 
@@ -556,21 +562,26 @@ void Pfmcpp_project11AudioProcessor::refreshLowCutFilter (Fifo<juce::ReferenceCo
                 switch (tempSize)
                 {
                     case 4:
-                        LowCutFilterChain.setBypassed<3>(false);
-                        *LowCutFilterChain.get<3>().coefficients = *tempArray[3];
-                        cutPool.add(tempArray[3]);
+//                        LowCutFilterChain.setBypassed<3>(false);
+//                        *LowCutFilterChain.get<3>().coefficients = *tempArray[3];
+//                        cutPool.add(tempArray[3]);
+                        update<3>(LowCutFilterChain, tempArray, cutPool);
+                        
                     case 3:
-                        LowCutFilterChain.setBypassed<2>(false);
-                        *LowCutFilterChain.get<2>().coefficients = *tempArray[2];
-                        cutPool.add(tempArray[2]);
+//                        LowCutFilterChain.setBypassed<2>(false);
+//                        *LowCutFilterChain.get<2>().coefficients = *tempArray[2];
+//                        cutPool.add(tempArray[2]);
+                        update<2>(LowCutFilterChain, tempArray, cutPool);
                     case 2:
-                        LowCutFilterChain.setBypassed<1>(false);
-                        *LowCutFilterChain.get<1>().coefficients = *tempArray[1];
-                        cutPool.add(tempArray[1]);
+//                        LowCutFilterChain.setBypassed<1>(false);
+//                        *LowCutFilterChain.get<1>().coefficients = *tempArray[1];
+//                        cutPool.add(tempArray[1]);
+                        update<1>(LowCutFilterChain, tempArray, cutPool);
                     case 1:
-                        LowCutFilterChain.setBypassed<0>(false);
-                        *LowCutFilterChain.get<0>().coefficients = *tempArray[0];
-                        cutPool.add(tempArray[0]);
+//                        LowCutFilterChain.setBypassed<0>(false);
+//                        *LowCutFilterChain.get<0>().coefficients = *tempArray[0];
+//                        cutPool.add(tempArray[0]);
+                        update<0>(LowCutFilterChain, tempArray, cutPool);
                 }
             }
         }
@@ -586,7 +597,7 @@ void Pfmcpp_project11AudioProcessor::refreshHighCutFilter (Fifo<juce::ReferenceC
     // Left
     if ( cutFifo.getNumAvailableForReading() > 0 )
     {
-        auto& LowCutFilterChain = chain.template get<FilterPosition::HighCut>();
+        auto& highCutFilterChain = chain.template get<FilterPosition::HighCut>();
         juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
     
         if ( cutFifo.pull(tempArray) )
@@ -594,34 +605,121 @@ void Pfmcpp_project11AudioProcessor::refreshHighCutFilter (Fifo<juce::ReferenceC
             auto tempSize = tempArray.size();
             if ( tempSize > 0)
             {
-                LowCutFilterChain.setBypassed<0>(true);
-                LowCutFilterChain.setBypassed<1>(true);
-                LowCutFilterChain.setBypassed<2>(true);
-                LowCutFilterChain.setBypassed<3>(true);
+                highCutFilterChain.setBypassed<0>(true);
+                highCutFilterChain.setBypassed<1>(true);
+                highCutFilterChain.setBypassed<2>(true);
+                highCutFilterChain.setBypassed<3>(true);
   
                 switch (tempSize)
                 {
                     case 4:
-                        LowCutFilterChain.setBypassed<3>(false);
-                        *LowCutFilterChain.get<3>().coefficients = *tempArray[3];
-                        cutPool.add(tempArray[3]);
+//                        highCutFilterChain.setBypassed<3>(false);
+//                        *highCutFilterChain.get<3>().coefficients = *tempArray[3];
+//                        cutPool.add(tempArray[3]);
+                        update<3>(highCutFilterChain, tempArray, cutPool);
                     case 3:
-                        LowCutFilterChain.setBypassed<2>(false);
-                        *LowCutFilterChain.get<2>().coefficients = *tempArray[2];
-                        cutPool.add(tempArray[2]);
+//                        highCutFilterChain.setBypassed<2>(false);
+//                        *highCutFilterChain.get<2>().coefficients = *tempArray[2];
+//                        cutPool.add(tempArray[2]);
+                        update<2>(highCutFilterChain, tempArray, cutPool);
                     case 2:
-                        LowCutFilterChain.setBypassed<1>(false);
-                        *LowCutFilterChain.get<1>().coefficients = *tempArray[1];
-                        cutPool.add(tempArray[1]);
+//                        highCutFilterChain.setBypassed<1>(false);
+//                        *highCutFilterChain.get<1>().coefficients = *tempArray[1];
+//                        cutPool.add(tempArray[1]);
+                        update<1>(highCutFilterChain, tempArray, cutPool);
                     case 1:
-                        LowCutFilterChain.setBypassed<0>(false);
-                        *LowCutFilterChain.get<0>().coefficients = *tempArray[0];
-                        cutPool.add(tempArray[0]);
+//                        highCutFilterChain.setBypassed<0>(false);
+//                        *highCutFilterChain.get<0>().coefficients = *tempArray[0];
+//                        cutPool.add(tempArray[0]);
+                        update<0>(highCutFilterChain, tempArray, cutPool);
                 }
             }
         }
     }
 }
+
+
+template<int Index, typename FifoType, typename Chain, typename Pool>
+void Pfmcpp_project11AudioProcessor::refreshCutFilter (FifoType& cutFifo, Chain& chain, Pool& cutPool)
+{
+    // Refresh Low Cut
+    // Left
+    if ( cutFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& CutFilterChain = chain.template get<Index>();
+        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
+    
+        if ( cutFifo.pull(tempArray) )
+        {
+            auto tempSize = tempArray.size();
+            if ( tempSize > 0)
+            {
+                CutFilterChain.template setBypassed<0>(true);
+                CutFilterChain.template setBypassed<1>(true);
+                CutFilterChain.template setBypassed<2>(true);
+                CutFilterChain.template setBypassed<3>(true);
+  
+                switch (tempSize)
+                {
+                    case 4:
+//                        highCutFilterChain.setBypassed<3>(false);
+//                        *highCutFilterChain.get<3>().coefficients = *tempArray[3];
+//                        cutPool.add(tempArray[3]);
+                        update<3>(CutFilterChain, tempArray, cutPool);
+                    case 3:
+//                        highCutFilterChain.setBypassed<2>(false);
+//                        *highCutFilterChain.get<2>().coefficients = *tempArray[2];
+//                        cutPool.add(tempArray[2]);
+                        update<2>(CutFilterChain, tempArray, cutPool);
+                    case 2:
+//                        highCutFilterChain.setBypassed<1>(false);
+//                        *highCutFilterChain.get<1>().coefficients = *tempArray[1];
+//                        cutPool.add(tempArray[1]);
+                        update<1>(CutFilterChain, tempArray, cutPool);
+                    case 1:
+//                        highCutFilterChain.setBypassed<0>(false);
+//                        *highCutFilterChain.get<0>().coefficients = *tempArray[0];
+//                        cutPool.add(tempArray[0]);
+                        update<0>(CutFilterChain, tempArray, cutPool);
+                }
+            }
+        }
+    }
+}
+
+
+
+template<int Index, typename FifoType, typename Chain, typename Pool>
+void Pfmcpp_project11AudioProcessor::refreshFilter (FifoType& filterFifo, Chain& chain, Pool& filterPool)
+{
+    CoefficientsPtr ptr;
+    
+    if ( filterFifo.getNumAvailableForReading() > 0 )
+    {
+        auto& singleFilter = chain.template get<Index>();
+        if ( filterFifo.pull(ptr) )
+        {
+            filterPool.add(ptr);
+            *(singleFilter.coefficients) = *ptr;
+        }
+    }
+    
+    
+    
+}
+
+
+template<int Index, typename Link, typename ArrayType, typename Pool>
+void Pfmcpp_project11AudioProcessor::update(Link& link, ArrayType& tempArray, Pool& pool)
+{
+    link.template setBypassed<Index>(false);
+    *link.template get<Index>().coefficients = *tempArray[Index];
+    pool.add(tempArray[Index]);
+}
+
+
+
+
 
 //==============================================================================
 // This creates new instances of the plugin..
