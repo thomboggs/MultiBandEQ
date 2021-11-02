@@ -20,7 +20,7 @@ struct ReleasePool : juce::Timer
 
     ReleasePool()
     {
-//        DBG("POOL is Created");
+        DBG("POOL is Created");
         // set the size of the deletion pool
         deletionPool.reserve(capacity);
         
@@ -30,7 +30,7 @@ struct ReleasePool : juce::Timer
     
     ~ReleasePool()
     {
-//        DBG("POOL is Destroyed");
+        DBG("POOL is Destroyed");
         stopTimer();
     }
     
@@ -40,11 +40,13 @@ struct ReleasePool : juce::Timer
         // To check if on messagethread: use [static bool existsAndIsCurrentThread ()
         if ( juce::MessageManager::existsAndIsCurrentThread() )
         {
+            DBG("Message Manager");
             addIfNotAlreadyThere(ptr);
             ptr.reset();
         }
         else
         {
+            DBG("Other Thread");
             // Add to Fifo
             if (releaseFifo.push(ptr) )
             {
@@ -78,12 +80,14 @@ struct ReleasePool : juce::Timer
                 }
             }
         }
-
+        
+        DBG("Pool Size Before: " + juce::String(deletionPool.size()));
         // Delete Everything in the pool with a RefCount <= 1
         deletionPool.erase( std::remove_if(deletionPool.begin(),
                                            deletionPool.end(),
                                            [] (Ptr& ptr) { return ptr->getReferenceCount() <= 1; }),
                                    deletionPool.end() );
+        DBG("Pool Size After: " + juce::String(deletionPool.size()));
     }
     
 private:
