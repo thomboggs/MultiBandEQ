@@ -334,19 +334,15 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
 void Pfmcpp_project11AudioProcessor::refreshFilters()
 {
     // Low Cut
-    refreshCutFilter<FilterPosition::LowCut> (leftLowCutFifo, leftChain, leftLowCutReleasePool);
-
-    refreshCutFilter<FilterPosition::LowCut> (rightLowCutFifo, rightChain, rightLowCutReleasePool);
+    refreshCutFilter<FilterPosition::LowCut> (LowCutFifo, deletionPool);
     
     // Peak Filter
-    refreshFilter ( leftFilterCoeffFifo, leftChain.get<FilterPosition::Multi1>(), leftFilterReleasePool);
+    refreshFilter<FilterPosition::Multi1> ( FilterCoeffFifo, deletionPool);
     
-    refreshFilter ( rightFilterCoeffFifo, rightChain.get<FilterPosition::Multi1>(), rightFilterReleasePool);
+//    refreshFilter ( FilterCoeffFifo, deletionPool);
     
     // High Cut
-    refreshCutFilter<FilterPosition::HighCut> (leftHighCutFifo, leftChain, leftHighCutReleasePool);
-
-    refreshCutFilter<FilterPosition::HighCut> (rightHighCutFifo, rightChain, rightHighCutReleasePool);
+    refreshCutFilter<FilterPosition::HighCut> (HighCutFifo, deletionPool);
 }
 
 
