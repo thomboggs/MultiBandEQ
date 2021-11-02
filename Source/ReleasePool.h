@@ -101,7 +101,7 @@ private:
             deletionPool.push_back(ptr);
         }
     }
-    static const size_t capacity { 1024 };
+    static const size_t capacity { 2048 };
     std::vector<Ptr> deletionPool;
     Fifo<Ptr, capacity> releaseFifo;
     juce::Atomic<bool> addedToFifo;
