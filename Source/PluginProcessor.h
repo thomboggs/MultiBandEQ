@@ -20,7 +20,6 @@
 #include "ReleasePool.h"
 
 
-
 //==============================================================================
 /**
 */
@@ -71,6 +70,7 @@ public:
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
     
 private:
+    
     enum FilterPosition
     {
         LowCut,
@@ -82,7 +82,6 @@ private:
     FilterParameters currentFilterParams;
     
     using Filter = juce::dsp::IIR::Filter<float>;
-//    using FilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter>;
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
     using FilterChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
     static const int chainLength { 3 };
@@ -91,6 +90,15 @@ private:
     
     using CoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
     using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
+    
+    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
+    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;
+    
+    FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> peakFilterFCG { FilterCoeffFifo , "Peak Filter Thread"};
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> lowCutFCG {LowCutFifo , "LowCut Thread" };
+    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> highCutFCG {HighCutFifo , "HighCut Thread" };
+    
+    ReleasePool<CoefficientsPtr> deletionPool { };
     
     template<typename ParamType>
     ParamType getParams (int bandNum);
@@ -113,19 +121,6 @@ private:
     
     template<int Index, typename FifoType, typename Pool>
     void refreshFilter (FifoType& filterFifo, Pool& filterPool);
-    
-       
-    
-    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
-    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;
-    
-    FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> peakFilterFCG { FilterCoeffFifo , "Peak Filter Thread"};
-    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> lowCutFCG {LowCutFifo , "LowCut Thread" };
-    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> highCutFCG {HighCutFifo , "HighCut Thread" };
-    
-    ReleasePool<CoefficientsPtr> deletionPool { };
-    
-    
     
     
     //==============================================================================
