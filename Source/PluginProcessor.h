@@ -91,29 +91,29 @@ private:
     using CoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
     using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
     
-    void setChainBypass(const bool isBypassed, FilterPosition pos);
+    template<typename ParamType>
+    ParamType getParams (int bandNum);
+    
+    template<int Index>
+    void setChainBypass(const bool isBypassed);
     
     void updateParams ();
     
-    void refreshLowCutFilter (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
-                              FilterChain& chain,
-                              ReleasePool<CoefficientsPtr>& cutPool);
-    void refreshHighCutFilter (Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32>& cutFifo,
-                              FilterChain& chain,
-                              ReleasePool<CoefficientsPtr>& cutPool);
+    template<int Index, typename ParamType, typename FCG>
+    void updateFilterParams(ParamType& params, FCG& leftFCG, FCG& rightFCG);
     
+    void refreshFilters ();
+
     template<int Index, typename FifoType, typename Chain, typename Pool>
     void refreshCutFilter (FifoType& cutFifo, Chain& chain, Pool& cutPool);
     
+    template<int Index, typename Link, typename ArrayType, typename Pool>
+    void update(Link& link, ArrayType& tempArray, Pool& pool);
     
-    template<int Index, typename FifoType, typename Chain, typename Pool>
-    void refreshFilter (FifoType& filterFifo, Chain& chain, Pool& filterPool);
+    template<typename FifoType, typename ChainLink, typename Pool>
+    void refreshFilter (FifoType& filterFifo, ChainLink& link, Pool& filterPool);
     
-    void refreshFilters ();
-    
-    HighCutLowCutParameters getCutParams (int bandNum);
-    FilterParameters getFilterParams (int bandNum);
-    
+       
     
     Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftLowCutFifo, rightLowCutFifo;
     Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> leftHighCutFifo, rightHighCutFifo;
@@ -130,8 +130,7 @@ private:
     ReleasePool<CoefficientsPtr> leftLowCutReleasePool { }, rightLowCutReleasePool { };
     ReleasePool<CoefficientsPtr> leftHighCutReleasePool { }, rightHighCutReleasePool { };
     
-    template<int Index, typename Link, typename ArrayType, typename Pool>
-    void update(Link& link, ArrayType& tempArray, Pool& pool);
+    
     
     
     //==============================================================================
