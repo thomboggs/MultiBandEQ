@@ -18,6 +18,7 @@
 #include "Fifo.h"
 #include "FilterCoefficientGenerator.h"
 #include "ReleasePool.h"
+#include "FilterLink.h"
 
 
 //==============================================================================
@@ -121,6 +122,10 @@ private:
     
     template<int Index, typename FifoType, typename Pool>
     void refreshFilter (FifoType& filterFifo, Pool& filterPool);
+    
+    // Test for FilterLink
+//    FilterLink<Filter, CoefficientsPtr, FilterParameters, CoefficientsMaker<float>> testLink;
+    
     
     
     //==============================================================================
