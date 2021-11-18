@@ -54,19 +54,75 @@ struct FilterLink
     }
     
     //stuff for the juce::SmoothedValue instances.
-    void updateSmootherTargets();
-    void resetSmoothers(float rampTime);
-    bool isSmoothing() const;
-    void checkIfStillSmoothing();
-    void advanceSmoothers(int numSamples);
+    void updateSmootherTargets()
+    {
+        if ( currentParams.frequency != freqSmoother.getTargetValue() )
+        {
+            freqSmoother.setTargetValue(currentParams.frequency);
+        }
+        
+        if ( currentParams.quality != qualitySmoother.getTargetValue() )
+        {
+            qualitySmoother.setTargetValue(currentParams.quality);
+        }
+        if constexpr (IsNotCutFilter<FilterType>::value)
+        {
+            if ( currentParams.gain != gainSmoother.getTargetValue() )
+            {
+                gainSmoother.setTargetValue(currentParams.gain);
+            }
+        }
+    }
+    
+    void resetSmoothers(float rampTime)
+    {
+        freqSmoother.reset(currentParams.sampleRate, rampTime);
+        freqSmoother.setCurrentAndTargetValue(currentParams.frequency);
+        
+        qualitySmoother.reset(currentParams.sampleRate, rampTime);
+        qualitySmoother.setCurrentAndTargetValue(currentParams.quality);
+        
+        if constexpr (IsNotCutFilter<FilterType>::value)
+        {
+            gainSmoother.reset(sampleRate, rampTime);
+            gainSmoother.setCurrentAndTargetValue(currentParams.gain);
+        }
+    }
+    
+    bool isSmoothing() const
+    {
+        if constexpr (IsNotCutFilter<FilterType>::value)
+        {
+            return freqSmoother.isSmoothing() || qualitySmoother.isSmoothing() || gainSmoother.isSmoothing();
+        }
+        
+        return freqSmoother.isSmoothing() || qualitySmoother.isSmoothing();
+    }
+    
+    void checkIfStillSmoothing()
+    {
+        if ( isSmoothing() )
+            shouldComputeNewCoefficients = true;
+    }
+    
+    void advanceSmoothers(int numSamples)
+    {
+        freqSmoother.skip(numSamples);
+        qualitySmoother.skip(numSamples);
+        
+        if constexpr (IsNotCutFilter<FilterType>::value)
+        {
+            gainSmoother.skip(numSamples);
+        }
+    }
     
     //stuff for updating the params
     void updateParams(const ParamType& params)
     {
-        if (linkParams != params)
+        if (currentParams != params)
         {
             // if changed, calc new Coeffs
-            linkParams = params;
+            currentParams = params;
             shouldComputeNewCoefficients = true;
         }
     }
@@ -109,9 +165,9 @@ struct FilterLink
      TODO:
      1)
      */
-        if (fromFifo)
+        if ( fromFifo )
         {
-            if ( linkFifo.getNumAvailableForReading() > 0 )
+            while ( linkFifo.getNumAvailableForReading() > 0 )
             {
                 FifoDataType ptr;
                 
@@ -126,11 +182,11 @@ struct FilterLink
             // call static coeffmaker function dependng on filterType
             if constexpr (IsNotCutFilter<FilterType>::value)
             {
-                updateCoefficients( calcFilterCoefficients(linkParams) );
+                updateCoefficients( FunctionType::calcFilterCoefficients(currentParams) );
             }
             else
             {
-                updateCoefficients( calcCutCoefficients(linkParams) );
+                updateCoefficients( FunctionType::calcCutCoefficients(currentParams) );
             }
         }
     }
@@ -139,11 +195,20 @@ struct FilterLink
     {
         if (shouldComputeNewCoefficients)
         {
-            // This is currently not using the smoothers
-            ParamType params = linkParams;
+            // Using Smoothers
+            ParamType tempParams;
+            
+            tempParams = currentParams;
+            tempParams.frequency = freqSmoother.getCurrentValue();
+            tempParams.quality = qualitySmoother.getCurrentValue();
+            
+            if constexpr (IsNotCutFilter<FilterType>::value)
+            {
+                tempParams.gain = gainSmoother.getCurrentValue();
+            }
             
             // Send Params to the FCG
-            linkFCG.changeParameters(params);
+            linkFCG.changeParameters(tempParams);
             
             // Before Leaving, reset flag
             shouldComputeNewCoefficients = false;
@@ -151,10 +216,48 @@ struct FilterLink
     }
     
     //stuff for configuring the filter before processing
-    void performPreloopUpdate(const ParamType& params);
-    void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip);
-    void initialize(const ParamType& params, float rampTime, bool onRealTimeThread, double sr);
+    void performPreloopUpdate(const ParamType& params)
+    {
+        updateParams(params);
+        resetSmoothers(0.05);
+    }
+    
+    void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip)
+    {
+        // Exit early if Params are bypassed
+        if ( currentParams.bypassed )
+            return;
+        
+        // generate new coefficients if needed
+        generateNewCoefficientsIfNeeded();
+        
+        // load any coefficients that are ready to go
+        loadCoefficients( onRealTimeThread );
+        
+        // Advance the Smoothers
+        advanceSmoothers( numSamplesToSkip );
+        
+        // Check If still Smoothing
+        checkIfStillSmoothing();
+    }
+    
+    void initialize(const ParamType& params, float rampTime, bool onRealTimeThread, double sr)
+    {
+        // Store Sample Rate
+        sampleRate = sr;
+        
+        // Update the Params
+        updateParams( params );
+        
+        // Reset The Smoothers
+        resetSmoothers( rampTime );
+        
+        // load Coefficients
+        loadCoefficients( onRealTimeThread );
+    }
+    
 private:
+    
     static const int fifoSize = 32;
     
     // releasePool
@@ -164,7 +267,7 @@ private:
     // FCG
     FilterCoefficientGenerator<FifoDataType, ParamType, CoefficientsMaker<float>, fifoSize> linkFCG;
     // Params
-    ParamType linkParams;
+    ParamType currentParams {};
     // shouldComputeNewCoefficients flag
     bool shouldComputeNewCoefficients { false };
     // sampleRate
@@ -174,10 +277,13 @@ private:
     
     // SmoothedValue Instances
     // FreqSmoother
+    juce::SmoothedValue<float> freqSmoother {100.f};
     // Quality Smoother
+    juce::SmoothedValue<float> qualitySmoother {1.f};
     // Gain Smoother
-    
-    
+    juce::SmoothedValue<float> gainSmoother {0.f};
+    // Don't need to smooth: order, bypassed, sampleRate, filterType, isLowCut
+
     
     //stuff for setting the coefficients of the FilterType instance.
     using Ptr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
@@ -203,19 +309,15 @@ private:
                 case 4:
                     filter.template setBypassed<3>(false);
                     updateFilterState(filter.template getIndex<3>().coefficients, coefficients[3]);
-//                    update<3>(leftCutFilter, tempArray, cutPool);
                 case 3:
                     filter.template setBypassed<2>(false);
                     updateFilterState(filter.template getIndex<2>().coefficients, coefficients[2]);
-//                    update<2>(leftCutFilter, tempArray, cutPool);
                 case 2:
                     filter.template setBypassed<1>(false);
                     updateFilterState(filter.template getIndex<1>().coefficients, coefficients[1]);
-//                    update<1>(leftCutFilter, tempArray, cutPool);
                 case 1:
                     filter.template setBypassed<0>(false);
                     updateFilterState(filter.template getIndex<0>().coefficients, coefficients[0]);
-//                    update<0>(leftCutFilter, tempArray, cutPool);
             }
         }
     }
