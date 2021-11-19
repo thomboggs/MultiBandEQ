@@ -40,7 +40,7 @@ struct FilterCoefficientGenerator : juce::Thread
     {
         paramFifo.push(params);
         parametersChanged.set(true);
-        DBG("FCG::changeParameters - Set parametersChanged to true");
+//        DBG("FCG::changeParameters - Set parametersChanged to true");
     }
     
     
@@ -53,10 +53,10 @@ struct FilterCoefficientGenerator : juce::Thread
             // If parametersChanged == true, compute new coefficients
             if ( parametersChanged.compareAndSetBool(false, true) )
             {
-                DBG("FCG::run - about to pull params from FIFO");
+//                DBG("FCG::run - about to pull params from FIFO");
                 while (paramFifo.pull(params))
                 {
-                    DBG("FCG::run - pulled params from FIFO");
+//                    DBG("FCG::run - pulled params from FIFO");
                     if constexpr ( IsCutParameterType<ParamType>::value )
                     {
                         // Calc Cut Parameters

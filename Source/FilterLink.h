@@ -72,7 +72,7 @@ struct FilterLink
     {
         if (currentParams != params)
         {
-            DBG("FilterLink::updateParams - Params Have Changed");
+//            DBG("FilterLink::updateParams - Params Have Changed");
             // if changed, calc new Coeffs
             currentParams = params;
             shouldComputeNewCoefficients = true;
@@ -90,7 +90,7 @@ struct FilterLink
     void performPreloopUpdate(const ParamType& params)
     {
         updateParams(params);
-        resetSmoothers(0.05);
+        updateSmootherTargets();
     }
     
     void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip);
@@ -170,9 +170,12 @@ private:
 
 
 //===============================================================================================
+
 /*
  Template Function Implementation
  */
+
+//===============================================================================================
 
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
 void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::updateSmootherTargets()
@@ -188,9 +191,9 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::updateSmooth
     }
     if constexpr (IsFilterParameterType<ParamType>::value)
     {
-        if ( currentParams.gain != gainSmoother.getTargetValue() )
+        if ( currentParams.gainInDb != gainSmoother.getTargetValue() )
         {
-            gainSmoother.setTargetValue(currentParams.gain);
+            gainSmoother.setTargetValue(currentParams.gainInDb);
         }
     }
 }
@@ -198,10 +201,10 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::updateSmooth
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
 void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::resetSmoothers(float rampTime)
 {
-    freqSmoother.reset(currentParams.sampleRate, rampTime);
+    freqSmoother.reset(sampleRate, rampTime);
     freqSmoother.setCurrentAndTargetValue(currentParams.frequency);
     
-    qualitySmoother.reset(currentParams.sampleRate, rampTime);
+    qualitySmoother.reset(sampleRate, rampTime);
     qualitySmoother.setCurrentAndTargetValue(currentParams.quality);
     
     if constexpr (IsFilterParameterType<ParamType>::value)
@@ -260,7 +263,7 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
 //        DBG("Attempting to Pull Coeffs From FIFO");
         while ( linkFifo.getNumAvailableForReading() > 0 )
         {
-            DBG("Successfully Pulled Coeff from FIFO");
+//            DBG("Successfully Pulled Coeff from FIFO");
             FifoDataType ptr;
             
             if ( linkFifo.pull(ptr) )
@@ -271,7 +274,7 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
     }
     else
     {
-        DBG("FilterLink::loadCoefficients - Calculating Coeffs directly not on RT Thread");
+//        DBG("FilterLink::loadCoefficients - Calculating Coeffs directly - not on RT Thread");
         // call static coeffmaker function dependng on filterType
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
@@ -285,46 +288,50 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
 }
 
 
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
+{
+    if (shouldComputeNewCoefficients)
+    {
+        
+        // Using Smoothers
+        ParamType tempParams;
+
+        tempParams = currentParams;
+        tempParams.frequency = freqSmoother.getNextValue();
+        tempParams.quality = qualitySmoother.getNextValue();
+        
+        DBG( juce::String(tempParams.frequency) );
+
+        if constexpr (IsFilterParameterType<ParamType>::value)
+        {
+            tempParams.gainInDb = gainSmoother.getNextValue();
+        }
+
+        // Send Params to the FCG
+        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
+        linkFCG.changeParameters(tempParams);
+
+        // Before Leaving, reset flag
+        shouldComputeNewCoefficients = false;
+    }
+}
+
+
 //template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
 //void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
 //{
+////    DBG("FilterLink:generateNewCoefficients - Checking if need to Gen new Coeffs");
 //    if (shouldComputeNewCoefficients)
 //    {
-//        // Using Smoothers
-//        ParamType tempParams;
-//
-//        tempParams = currentParams;
-//        tempParams.frequency = freqSmoother.getCurrentValue();
-//        tempParams.quality = qualitySmoother.getCurrentValue();
-//
-//        if constexpr (IsFilterParameterType<ParamType>::value)
-//        {
-//            tempParams.gainInDb = gainSmoother.getCurrentValue();
-//        }
-//
+//        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
 //        // Send Params to the FCG
-//        linkFCG.changeParameters(tempParams);
+//        linkFCG.changeParameters(currentParams);
 //
 //        // Before Leaving, reset flag
 //        shouldComputeNewCoefficients = false;
 //    }
 //}
-
-
-template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
-void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
-{
-//    DBG("FilterLink:generateNewCoefficients - Checking if need to Gen new Coeffs");
-    if (shouldComputeNewCoefficients)
-    {
-        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
-        // Send Params to the FCG
-        linkFCG.changeParameters(currentParams);
-        
-        // Before Leaving, reset flag
-        shouldComputeNewCoefficients = false;
-    }
-}
 
 
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>

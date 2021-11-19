@@ -99,7 +99,7 @@ private:
     Chain leftChain, rightChain;
 
     
-    void initializeFilters (double sampleRate);
+    void initializeFilters (double sampleRate, float rampTime);
     
 //    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
 //    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;

@@ -36,7 +36,7 @@ struct ReleasePool : juce::Timer
     
     void add(Ptr ptr)
     {
-        DBG("Adding to Pool");
+//        DBG("Adding to Pool");
         // To check if on messagethread: use [static bool existsAndIsCurrentThread ()
         if ( juce::MessageManager::existsAndIsCurrentThread() )
         {
@@ -46,7 +46,7 @@ struct ReleasePool : juce::Timer
         }
         else
         {
-            DBG("Other Thread");
+//            DBG("Other Thread");
             // Add to Fifo
             if (releaseFifo.push(ptr) )
             {
@@ -81,13 +81,13 @@ struct ReleasePool : juce::Timer
             }
         }
         
-        DBG("Pool Size Before: " + juce::String(deletionPool.size()));
+//        DBG("Pool Size Before: " + juce::String(deletionPool.size()));
         // Delete Everything in the pool with a RefCount <= 1
         deletionPool.erase( std::remove_if(deletionPool.begin(),
                                            deletionPool.end(),
                                            [] (Ptr& ptr) { return ptr->getReferenceCount() <= 1; }),
                                    deletionPool.end() );
-        DBG("Pool Size After: " + juce::String(deletionPool.size()));
+//        DBG("Pool Size After: " + juce::String(deletionPool.size()));
     }
     
 private:
@@ -101,7 +101,7 @@ private:
             deletionPool.push_back(ptr);
         }
     }
-    static const size_t capacity { 2048 };
+    static const size_t capacity { 4096 };
     std::vector<Ptr> deletionPool;
     Fifo<Ptr, capacity> releaseFifo;
     juce::Atomic<bool> addedToFifo;
