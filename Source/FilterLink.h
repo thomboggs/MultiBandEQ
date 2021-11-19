@@ -22,9 +22,6 @@
 /*
  Template Specialization To check if T is ReferenceCountedObjectPtr
  */
-//template <typename FloatType>
-//using Filter = juce::dsp::IIR::Filter<FloatType>;
-////using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
 
 template <typename T>
 struct IsFilterParameterType : std::false_type { };
@@ -37,7 +34,7 @@ struct IsFilterParameterType<FilterParameters> : std::true_type { };
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
 struct FilterLink
 {
-    FilterLink ();
+    FilterLink () {};
     
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
@@ -75,6 +72,7 @@ struct FilterLink
     {
         if (currentParams != params)
         {
+            DBG("FilterLink::updateParams - Params Have Changed");
             // if changed, calc new Coeffs
             currentParams = params;
             shouldComputeNewCoefficients = true;
@@ -95,51 +93,21 @@ struct FilterLink
         resetSmoothers(0.05);
     }
     
-    void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip)
-    {
-        // Exit early if Params are bypassed
-        if ( currentParams.bypassed )
-            return;
-        
-        // generate new coefficients if needed
-        generateNewCoefficientsIfNeeded();
-        
-        // load any coefficients that are ready to go
-        loadCoefficients( onRealTimeThread );
-        
-        // Advance the Smoothers
-        advanceSmoothers( numSamplesToSkip );
-        
-        // Check If still Smoothing
-        checkIfStillSmoothing();
-    }
+    void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip);
     
-    void initialize(const ParamType& params, float rampTime, bool onRealTimeThread, double sr)
-    {
-        // Store Sample Rate
-        sampleRate = sr;
-        
-        // Update the Params
-        updateParams( params );
-        
-        // Reset The Smoothers
-        resetSmoothers( rampTime );
-        
-        // load Coefficients
-        loadCoefficients( onRealTimeThread );
-    }
+    void initialize(const ParamType& params, float rampTime, bool onRealTimeThread, double sr);
     
 private:
     
     static const int fifoSize = 32;
     
     // releasePool
-    using CoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
-    ReleasePool<CoefficientsPtr> linkDeletionPool { };
+    using SingleCoefficientsPtr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
+    ReleasePool<SingleCoefficientsPtr> linkDeletionPool { };
     // Fifo
     Fifo<FifoDataType, fifoSize> linkFifo;
     // FCG
-    FilterCoefficientGenerator<FifoDataType, ParamType, CoefficientsMaker<float>, fifoSize> linkFCG;
+    FilterCoefficientGenerator<FifoDataType, ParamType, CoefficientsMaker<float>, fifoSize> linkFCG {linkFifo, "Filter Thread"};
     // Params
     ParamType currentParams {};
     // shouldComputeNewCoefficients flag
@@ -289,8 +257,10 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
 {
     if ( fromFifo )
     {
+//        DBG("Attempting to Pull Coeffs From FIFO");
         while ( linkFifo.getNumAvailableForReading() > 0 )
         {
+            DBG("Successfully Pulled Coeff from FIFO");
             FifoDataType ptr;
             
             if ( linkFifo.pull(ptr) )
@@ -301,6 +271,7 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
     }
     else
     {
+        DBG("FilterLink::loadCoefficients - Calculating Coeffs directly not on RT Thread");
         // call static coeffmaker function dependng on filterType
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
@@ -314,27 +285,86 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
 }
 
 
+//template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+//void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
+//{
+//    if (shouldComputeNewCoefficients)
+//    {
+//        // Using Smoothers
+//        ParamType tempParams;
+//
+//        tempParams = currentParams;
+//        tempParams.frequency = freqSmoother.getCurrentValue();
+//        tempParams.quality = qualitySmoother.getCurrentValue();
+//
+//        if constexpr (IsFilterParameterType<ParamType>::value)
+//        {
+//            tempParams.gainInDb = gainSmoother.getCurrentValue();
+//        }
+//
+//        // Send Params to the FCG
+//        linkFCG.changeParameters(tempParams);
+//
+//        // Before Leaving, reset flag
+//        shouldComputeNewCoefficients = false;
+//    }
+//}
+
+
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
 void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
 {
+//    DBG("FilterLink:generateNewCoefficients - Checking if need to Gen new Coeffs");
     if (shouldComputeNewCoefficients)
     {
-        // Using Smoothers
-        ParamType tempParams;
-        
-        tempParams = currentParams;
-        tempParams.frequency = freqSmoother.getCurrentValue();
-        tempParams.quality = qualitySmoother.getCurrentValue();
-        
-        if constexpr (IsFilterParameterType<ParamType>::value)
-        {
-            tempParams.gainInDb = gainSmoother.getCurrentValue();
-        }
-        
+        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
         // Send Params to the FCG
-        linkFCG.changeParameters(tempParams);
+        linkFCG.changeParameters(currentParams);
         
         // Before Leaving, reset flag
         shouldComputeNewCoefficients = false;
     }
 }
+
+
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip)
+{
+    // Exit early if Params are bypassed
+    if ( currentParams.bypassed )
+    {
+        DBG("Filter Is Bypassed");
+        return;
+    }
+    
+    // generate new coefficients if needed
+    generateNewCoefficientsIfNeeded();
+    
+    // load any coefficients that are ready to go
+//    DBG("FilterLink::PILU - Pre LoadCoefficients()");
+    loadCoefficients( onRealTimeThread );
+    
+    // Advance the Smoothers
+    advanceSmoothers( numSamplesToSkip );
+    
+    // Check If still Smoothing
+    checkIfStillSmoothing();
+}
+
+
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::initialize(const ParamType& params, float rampTime, bool onRealTimeThread, double sr)
+{
+    // Store Sample Rate
+    sampleRate = sr;
+    
+    // Update the Params
+    updateParams( params );
+    
+    // Reset The Smoothers
+    resetSmoothers( rampTime );
+    
+    // load Coefficients
+    loadCoefficients( onRealTimeThread );
+}
+

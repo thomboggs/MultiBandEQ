@@ -87,9 +87,10 @@ private:
     
     using Filter = juce::dsp::IIR::Filter<float>;
     using CutFilterChain = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+    
     using CutFilter = FilterLink<CutFilterChain, juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>>;
     using SingleFilter = FilterLink<Filter, CoefficientsPtr, FilterParameters, CoefficientsMaker<float>>;
-//    using FilterChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+    
     using Chain = juce::dsp::ProcessorChain<CutFilter,
                                             SingleFilter,
                                             CutFilter>;
@@ -115,7 +116,7 @@ private:
     template<int Index>
     void setChainBypass(const bool isBypassed);
     
-//    void updateParams ();
+    void updateFilterParams ();
     
 //    template<int Index, typename ParamType, typename FCG>
 //    void updateFilterParams(ParamType& params, FCG& filterFCG);
