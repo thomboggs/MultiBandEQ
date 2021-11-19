@@ -113,6 +113,32 @@ void Pfmcpp_project11AudioProcessor::prepareToPlay (double sampleRate, int sampl
     
     leftChain.prepare(spec);
     rightChain.prepare(spec);
+    
+    // Initialize Filters
+    // poll the parameters and update each chain
+    initializeFilters(sampleRate);
+    
+    // Reset Chain
+    leftChain.reset();
+    rightChain.reset();
+}
+
+
+void Pfmcpp_project11AudioProcessor::initializeFilters(double sampleRate)
+{
+    auto rampTime = 0.05f;
+    
+    auto tempCutParams = getParams<HighCutLowCutParameters>(0);
+    leftChain.get<0>().initialize(tempCutParams, rampTime, false, sampleRate);
+    rightChain.get<0>().initialize(tempCutParams, rampTime, false, sampleRate);
+    
+    auto tempFilterParams = getParams<FilterParameters>(1);
+    leftChain.get<1>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<1>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempCutParams = getParams<HighCutLowCutParameters>(2);
+    leftChain.get<2>().initialize(tempCutParams, rampTime, false, sampleRate);
+    rightChain.get<2>().initialize(tempCutParams, rampTime, false, sampleRate);
 }
 
 void Pfmcpp_project11AudioProcessor::releaseResources()
@@ -148,34 +174,46 @@ bool Pfmcpp_project11AudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
+//    auto totalNumInputChannels  = getTotalNumInputChannels();
+//    auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+//    updateParams();
+    leftChain.get<0>().updateParams(getParams<HighCutLowCutParameters>(0));
+    rightChain.get<0>().updateParams(getParams<HighCutLowCutParameters>(0));
+    leftChain.get<1>().updateParams(getParams<FilterParameters>(1));
+    rightChain.get<1>().updateParams(getParams<FilterParameters>(1));
+    leftChain.get<2>().updateParams(getParams<HighCutLowCutParameters>(2));
+    rightChain.get<2>().updateParams(getParams<HighCutLowCutParameters>(2));
     
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-    
-    updateParams();
-    
-    refreshFilters();
-
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
-    
-    auto leftBlock = block.getSingleChannelBlock(0);
-    auto rightBlock = block.getSingleChannelBlock(1);
-    
-    juce::dsp::ProcessContextReplacing<float> leftContext (leftBlock);
-    juce::dsp::ProcessContextReplacing<float> rightContext (rightBlock);
-    
-    leftChain.process(leftContext);
-    rightChain.process(rightContext);
+    auto maxChunkSize = 32;
+    for (auto offset = 0; offset < block.getNumSamples(); offset += 32)
+    {
+        auto chunkSize = (block.getNumSamples() - offset) > maxChunkSize ? maxChunkSize : static_cast<int>(block.getNumSamples() - offset);
+
+        // Loop through filters and call performInnerLoopFilterUpdate()
+        leftChain.get<0>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<0>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<1>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<1>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<2>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<2>().performInnerLoopFilterUpdate(true, chunkSize);
+        
+        // Process The Audio
+        auto subBlock = block.getSubBlock(offset, chunkSize);
+        auto leftSubBlock = subBlock.getSingleChannelBlock(0);
+        auto rightSubBlock = subBlock.getSingleChannelBlock(1);
+        
+        juce::dsp::ProcessContextReplacing<float> leftContext (leftSubBlock);
+        juce::dsp::ProcessContextReplacing<float> rightContext (rightSubBlock);
+        
+        leftChain.process(leftContext);
+        rightChain.process(rightContext);
+        
+        // Update Offset
+        offset += chunkSize;
+    }
 }
 
 
@@ -214,7 +252,8 @@ void Pfmcpp_project11AudioProcessor::setStateInformation (const void* data, int 
     if ( tree.isValid() )
     {
         apvts.replaceState(tree);
-        // This updates the apvts. In the processBlock, any apvts changes will be automatically applied.
+        // Initialize Filters
+        initializeFilters(getSampleRate());
     }
 }
 
@@ -331,19 +370,19 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
 }
 
 
-void Pfmcpp_project11AudioProcessor::refreshFilters()
-{
-    // Low Cut
-    refreshCutFilter<FilterPosition::LowCut> (LowCutFifo, deletionPool);
-    
-    // Peak Filter
-    refreshFilter<FilterPosition::Multi1> ( FilterCoeffFifo, deletionPool);
-    
-//    refreshFilter ( FilterCoeffFifo, deletionPool);
-    
-    // High Cut
-    refreshCutFilter<FilterPosition::HighCut> (HighCutFifo, deletionPool);
-}
+//void Pfmcpp_project11AudioProcessor::refreshFilters()
+//{
+//    // Low Cut
+//    refreshCutFilter<FilterPosition::LowCut> (LowCutFifo, deletionPool);
+//
+//    // Peak Filter
+//    refreshFilter<FilterPosition::Multi1> ( FilterCoeffFifo, deletionPool);
+//
+////    refreshFilter ( FilterCoeffFifo, deletionPool);
+//
+//    // High Cut
+//    refreshCutFilter<FilterPosition::HighCut> (HighCutFifo, deletionPool);
+//}
 
 
 //==============================================================================
