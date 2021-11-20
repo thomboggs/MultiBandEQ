@@ -93,13 +93,21 @@ private:
     
     using Chain = juce::dsp::ProcessorChain<CutFilter,
                                             SingleFilter,
+                                            SingleFilter,
+                                            SingleFilter,
+                                            SingleFilter,
+                                            SingleFilter,
+                                            SingleFilter,
                                             CutFilter>;
-    static const int chainLength { 3 };
+    static const int chainLength { 8 };
     
     Chain leftChain, rightChain;
 
     
     void initializeFilters (double sampleRate, float rampTime);
+    
+    template <int Index, typename ParamType>
+    void initializeFilter (double sampleRate, float rampTime);
     
 //    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
 //    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;

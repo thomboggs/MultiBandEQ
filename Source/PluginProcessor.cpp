@@ -136,9 +136,29 @@ void Pfmcpp_project11AudioProcessor::initializeFilters(double sampleRate, float 
     leftChain.get<1>().initialize(tempFilterParams, rampTime, false, sampleRate);
     rightChain.get<1>().initialize(tempFilterParams, rampTime, false, sampleRate);
     
-    tempCutParams = getParams<HighCutLowCutParameters>(2);
-    leftChain.get<2>().initialize(tempCutParams, rampTime, false, sampleRate);
-    rightChain.get<2>().initialize(tempCutParams, rampTime, false, sampleRate);
+    tempFilterParams = getParams<FilterParameters>(2);
+    leftChain.get<2>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<2>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempFilterParams = getParams<FilterParameters>(3);
+    leftChain.get<3>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<3>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempFilterParams = getParams<FilterParameters>(4);
+    leftChain.get<4>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<4>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempFilterParams = getParams<FilterParameters>(5);
+    leftChain.get<5>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<5>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempFilterParams = getParams<FilterParameters>(6);
+    leftChain.get<6>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    rightChain.get<6>().initialize(tempFilterParams, rampTime, false, sampleRate);
+    
+    tempCutParams = getParams<HighCutLowCutParameters>(7);
+    leftChain.get<7>().initialize(tempCutParams, rampTime, false, sampleRate);
+    rightChain.get<7>().initialize(tempCutParams, rampTime, false, sampleRate);
 }
 
 void Pfmcpp_project11AudioProcessor::releaseResources()
@@ -210,6 +230,16 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         rightChain.get<1>().performInnerLoopFilterUpdate(true, chunkSize);
         leftChain.get<2>().performInnerLoopFilterUpdate(true, chunkSize);
         rightChain.get<2>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<3>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<3>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<4>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<4>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<5>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<5>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<6>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<6>().performInnerLoopFilterUpdate(true, chunkSize);
+        leftChain.get<7>().performInnerLoopFilterUpdate(true, chunkSize);
+        rightChain.get<7>().performInnerLoopFilterUpdate(true, chunkSize);
 
         // Process The Audio
         auto subBlock = block.getSubBlock(offset, chunkSize);
@@ -258,12 +288,72 @@ void Pfmcpp_project11AudioProcessor::updateFilterParams()
     if ( !filterBypassed )
     {
         setChainBypass<2>(false);
-        leftChain.get<2>().performPreloopUpdate(getParams<HighCutLowCutParameters>(2));
-        rightChain.get<2>().performPreloopUpdate(getParams<HighCutLowCutParameters>(2));
+        leftChain.get<2>().performPreloopUpdate(getParams<FilterParameters>(2));
+        rightChain.get<2>().performPreloopUpdate(getParams<FilterParameters>(2));
     }
     else
     {
         setChainBypass<2>(true);
+    }
+    
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(3)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<3>(false);
+        leftChain.get<3>().performPreloopUpdate(getParams<FilterParameters>(3));
+        rightChain.get<3>().performPreloopUpdate(getParams<FilterParameters>(3));
+    }
+    else
+    {
+        setChainBypass<3>(true);
+    }
+    
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(4)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<4>(false);
+        leftChain.get<4>().performPreloopUpdate(getParams<FilterParameters>(4));
+        rightChain.get<4>().performPreloopUpdate(getParams<FilterParameters>(4));
+    }
+    else
+    {
+        setChainBypass<4>(true);
+    }
+    
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(5)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<5>(false);
+        leftChain.get<5>().performPreloopUpdate(getParams<FilterParameters>(5));
+        rightChain.get<5>().performPreloopUpdate(getParams<FilterParameters>(5));
+    }
+    else
+    {
+        setChainBypass<5>(true);
+    }
+    
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(6)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<6>(false);
+        leftChain.get<6>().performPreloopUpdate(getParams<FilterParameters>(6));
+        rightChain.get<6>().performPreloopUpdate(getParams<FilterParameters>(6));
+    }
+    else
+    {
+        setChainBypass<6>(true);
+    }
+    
+    filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(7)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<7>(false);
+        leftChain.get<7>().performPreloopUpdate(getParams<HighCutLowCutParameters>(7));
+        rightChain.get<7>().performPreloopUpdate(getParams<HighCutLowCutParameters>(7));
+    }
+    else
+    {
+        setChainBypass<7>(true);
     }
 }
 
