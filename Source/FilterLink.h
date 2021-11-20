@@ -61,23 +61,13 @@ struct FilterLink
     
     void checkIfStillSmoothing()
     {
-        if ( isSmoothing() )
-            shouldComputeNewCoefficients = true;
+        if (isSmoothing()) shouldComputeNewCoefficients = true;
     }
     
     void advanceSmoothers(int numSamples);
     
     //stuff for updating the params
-    void updateParams(const ParamType& params)
-    {
-        if (currentParams != params)
-        {
-//            DBG("FilterLink::updateParams - Params Have Changed");
-            // if changed, calc new Coeffs
-            currentParams = params;
-            shouldComputeNewCoefficients = true;
-        }
-    }
+    void updateParams(const ParamType& params);
     
     //stuff for updating the coefficients from processBlock, prepareToPlay, or setStateInformation
     void updateCoefficients(const FifoDataType& coefficients);
@@ -87,11 +77,7 @@ struct FilterLink
     void generateNewCoefficientsIfNeeded();
     
     //stuff for configuring the filter before processing
-    void performPreloopUpdate(const ParamType& params)
-    {
-        updateParams(params);
-        updateSmootherTargets();
-    }
+    void performPreloopUpdate(const ParamType& params);
     
     void performInnerLoopFilterUpdate(bool onRealTimeThread, int numSamplesToSkip);
     
@@ -118,54 +104,14 @@ private:
     FilterType filter;
     
     // SmoothedValue Instances
-    // FreqSmoother
-    juce::SmoothedValue<float> freqSmoother {100.f};
-    // Quality Smoother
-    juce::SmoothedValue<float> qualitySmoother {1.f};
-    // Gain Smoother
-    juce::SmoothedValue<float> gainSmoother {0.f};
-    // Don't need to smooth: order, bypassed, sampleRate, filterType, isLowCut
+    juce::SmoothedValue<float> freqSmoother {100.f}, qualitySmoother {1.f}, gainSmoother {0.f};
 
-    
     //stuff for setting the coefficients of the FilterType instance.
     using Ptr = juce::dsp::IIR::Filter<float>::CoefficientsPtr;
     
-    void updateFilterState(Ptr& oldState, Ptr newState)
-    {
-        linkDeletionPool.add(newState);
-        *(oldState) = *newState;
-    }
+    void updateFilterState(Ptr& oldState, Ptr newState);
     
-    void configureCutFilterChain(const FifoDataType& coefficients)
-    {
-        if constexpr ( !IsFilterParameterType<ParamType>::value )
-        {
-            auto tempSize = coefficients.size();
-            if ( tempSize > 0)
-            {
-                filter.template setBypassed<0>(true);
-                filter.template setBypassed<1>(true);
-                filter.template setBypassed<2>(true);
-                filter.template setBypassed<3>(true);
-                
-                switch (tempSize)
-                {
-                    case 4:
-                        filter.template setBypassed<3>(false);
-                        updateFilterState(filter.template get<3>().coefficients, coefficients[3]);
-                    case 3:
-                        filter.template setBypassed<2>(false);
-                        updateFilterState(filter.template get<2>().coefficients, coefficients[2]);
-                    case 2:
-                        filter.template setBypassed<1>(false);
-                        updateFilterState(filter.template get<1>().coefficients, coefficients[1]);
-                    case 1:
-                        filter.template setBypassed<0>(false);
-                        updateFilterState(filter.template get<0>().coefficients, coefficients[0]);
-                }
-            }
-        }
-    }
+    void configureCutFilterChain(const FifoDataType& coefficients);
 };
 
 
@@ -234,6 +180,18 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::advanceSmoot
     if constexpr (IsFilterParameterType<ParamType>::value)
     {
         gainSmoother.skip(numSamples);
+    }
+}
+
+
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::updateParams(const ParamType& params)
+{
+    if (currentParams != params)
+    {
+        // if changed, calc new Coeffs
+        currentParams = params;
+        shouldComputeNewCoefficients = true;
     }
 }
 
@@ -318,20 +276,12 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewC
 }
 
 
-//template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
-//void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewCoefficientsIfNeeded()
-//{
-////    DBG("FilterLink:generateNewCoefficients - Checking if need to Gen new Coeffs");
-//    if (shouldComputeNewCoefficients)
-//    {
-//        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
-//        // Send Params to the FCG
-//        linkFCG.changeParameters(currentParams);
-//
-//        // Before Leaving, reset flag
-//        shouldComputeNewCoefficients = false;
-//    }
-//}
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::performPreloopUpdate(const ParamType& params)
+{
+    updateParams(params);
+    updateSmootherTargets();
+}
 
 
 template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
@@ -348,7 +298,6 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::performInner
     generateNewCoefficientsIfNeeded();
     
     // load any coefficients that are ready to go
-//    DBG("FilterLink::PILU - Pre LoadCoefficients()");
     loadCoefficients( onRealTimeThread );
     
     // Advance the Smoothers
@@ -375,3 +324,42 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::initialize(c
     loadCoefficients( onRealTimeThread );
 }
 
+
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::updateFilterState(Ptr& oldState, Ptr newState)
+{
+    linkDeletionPool.add(newState);
+    *(oldState) = *newState;
+}
+
+template<typename FilterType, typename FifoDataType, typename ParamType, typename FunctionType>
+void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::configureCutFilterChain(const FifoDataType& coefficients)
+{
+    if constexpr ( !IsFilterParameterType<ParamType>::value )
+    {
+        auto tempSize = coefficients.size();
+        if ( tempSize > 0)
+        {
+            filter.template setBypassed<0>(true);
+            filter.template setBypassed<1>(true);
+            filter.template setBypassed<2>(true);
+            filter.template setBypassed<3>(true);
+            
+            switch (tempSize)
+            {
+                case 4:
+                    filter.template setBypassed<3>(false);
+                    updateFilterState(filter.template get<3>().coefficients, coefficients[3]);
+                case 3:
+                    filter.template setBypassed<2>(false);
+                    updateFilterState(filter.template get<2>().coefficients, coefficients[2]);
+                case 2:
+                    filter.template setBypassed<1>(false);
+                    updateFilterState(filter.template get<1>().coefficients, coefficients[1]);
+                case 1:
+                    filter.template setBypassed<0>(false);
+                    updateFilterState(filter.template get<0>().coefficients, coefficients[0]);
+            }
+        }
+    }
+}

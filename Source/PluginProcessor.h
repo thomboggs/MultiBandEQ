@@ -104,10 +104,10 @@ private:
     Chain leftChain, rightChain;
 
     
-    void initializeFilters (double sampleRate, float rampTime);
+    void initializeFilters (const double sampleRate, const float rampTime);
     
     template <int Index, typename ParamType>
-    void initializeFilter (double sampleRate, float rampTime);
+    void initializeFilter (const double sampleRate, const float rampTime);
     
 //    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
 //    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;
@@ -118,13 +118,21 @@ private:
 //    
 //    ReleasePool<CoefficientsPtr> deletionPool { };
     
-    template<typename ParamType>
-    ParamType getParams (int bandNum);
+    template <typename ParamType>
+    ParamType getParams (const int bandNum);
     
-    template<int Index>
+    template <int Index>
     void setChainBypass(const bool isBypassed);
     
     void updateFilterParams ();
+    
+    template <int Index, typename ParamType>
+    void updateSingleFilterParams ();
+    
+    void updateFilterState (const int chunkSize);
+    
+    template <int Index>
+    void updateSingleFilterState (const bool onRealTimeThread, const int chunkSize);
     
 //    template<int Index, typename ParamType, typename FCG>
 //    void updateFilterParams(ParamType& params, FCG& filterFCG);
@@ -155,8 +163,9 @@ private:
         Template Function Definition
  */
 //==============================================================================
+
 template<typename ParamType>
-ParamType Pfmcpp_project11AudioProcessor::getParams (int bandNum)
+ParamType Pfmcpp_project11AudioProcessor::getParams (const int bandNum)
 {
     ParamType params;
     
@@ -215,118 +224,35 @@ void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed)
 }
 
 
-//void Pfmcpp_project11AudioProcessor::updateParams()
-//{
-//    /*
-//     Low Cut
-//     */
-//    updateFilterParams<FilterPosition::LowCut>(currentLowCutParams, lowCutFCG);
-//    
-//    /*
-//     Multi1
-//     */
-//    updateFilterParams<FilterPosition::Multi1>(currentFilterParams, peakFilterFCG);
-//    
-//    /*
-//     High Cut Filter
-//     */
-//    updateFilterParams<FilterPosition::HighCut>(currentHighCutParams, highCutFCG);
-//}
+template <int Index, typename ParamType>
+void Pfmcpp_project11AudioProcessor::initializeFilter (const double sampleRate, const float rampTime)
+{
+    auto tempCutParams = getParams<ParamType>(Index);
+    leftChain.get<Index>().initialize(tempCutParams, rampTime, false, sampleRate);
+    rightChain.get<Index>().initialize(tempCutParams, rampTime, false, sampleRate);
+    
+}
 
 
-//template<int Index, typename ParamType, typename FCG>
-//void Pfmcpp_project11AudioProcessor::updateFilterParams(ParamType& params, FCG& filterFCG)
-//{
-//    bool filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(Index)))->get();
-//    if ( !filterBypassed)
-//    {
-//        setChainBypass<Index>(false);
-//
-//        auto tempParams = getParams<ParamType>(Index);
-//        if (params != tempParams)
-//        {
-//            // if changed, calc new Coeffs
-//            params = tempParams;
-//
-//            filterFCG.changeParameters(params);
-//        }
-//    }
-//    else
-//    {
-//        setChainBypass<Index>(true);
-//    }
-//}
-//
-//
-//template<int Index, typename FifoType, typename Pool>
-//void Pfmcpp_project11AudioProcessor::refreshCutFilter (FifoType& cutFifo, Pool& cutPool)
-//{
-//    // Refresh Low Cut
-//    // Left
-//    if ( cutFifo.getNumAvailableForReading() > 0 )
-//    {
-//        juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> tempArray {};
-//
-//        if ( cutFifo.pull(tempArray) )
-//        {
-//            auto& leftCutFilter = leftChain.template get<Index>();
-//            auto& rightCutFilter = rightChain.template get<Index>();
-//
-//            auto tempSize = tempArray.size();
-//            if ( tempSize > 0)
-//            {
-//                leftCutFilter.template setBypassed<0>(true);
-//                leftCutFilter.template setBypassed<1>(true);
-//                leftCutFilter.template setBypassed<2>(true);
-//                leftCutFilter.template setBypassed<3>(true);
-//
-//                rightCutFilter.template setBypassed<0>(true);
-//                rightCutFilter.template setBypassed<1>(true);
-//                rightCutFilter.template setBypassed<2>(true);
-//                rightCutFilter.template setBypassed<3>(true);
-//
-//                switch (tempSize)
-//                {
-//                    case 4:
-//                        update<3>(leftCutFilter, tempArray, cutPool);
-//                        update<3>(rightCutFilter, tempArray, cutPool);
-//                    case 3:
-//                        update<2>(leftCutFilter, tempArray, cutPool);
-//                        update<2>(rightCutFilter, tempArray, cutPool);
-//                    case 2:
-//                        update<1>(leftCutFilter, tempArray, cutPool);
-//                        update<1>(rightCutFilter, tempArray, cutPool);
-//                    case 1:
-//                        update<0>(leftCutFilter, tempArray, cutPool);
-//                        update<0>(rightCutFilter, tempArray, cutPool);
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//
-//template<int Index, typename Link, typename ArrayType, typename Pool>
-//void Pfmcpp_project11AudioProcessor::update(Link& link, ArrayType& tempArray, Pool& pool)
-//{
-//    link.template setBypassed<Index>(false);
-//    *link.template get<Index>().coefficients = *tempArray[Index];
-//    pool.add(tempArray[Index]);
-//}
-//
-//
-//template<int Index, typename FifoType, typename Pool>
-//void Pfmcpp_project11AudioProcessor::refreshFilter (FifoType& filterFifo, Pool& filterPool)
-//{
-//    if ( filterFifo.getNumAvailableForReading() > 0 )
-//    {
-//        CoefficientsPtr ptr;
-//
-//        if ( filterFifo.pull(ptr) )
-//        {
-//            filterPool.add(ptr);
-//            *(leftChain.get<Index>().coefficients) = *ptr;
-//            *(rightChain.get<Index>().coefficients) = *ptr;
-//        }
-//    }
-//}
+template <int Index, typename ParamType>
+void Pfmcpp_project11AudioProcessor::updateSingleFilterParams ()
+{
+    auto filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(Index)))->get();
+    if ( !filterBypassed )
+    {
+        setChainBypass<Index>(false);
+        leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
+        rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
+    }
+    else
+    {
+        setChainBypass<Index>(true);
+    }
+}
+
+template <int Index>
+void Pfmcpp_project11AudioProcessor::updateSingleFilterState (const bool onRealTimeThread, const int chunkSize)
+{
+    leftChain.get<Index>().performInnerLoopFilterUpdate(onRealTimeThread, chunkSize);
+    rightChain.get<Index>().performInnerLoopFilterUpdate(onRealTimeThread, chunkSize);
+}
