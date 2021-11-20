@@ -232,7 +232,6 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::loadCoeffici
     }
     else
     {
-//        DBG("FilterLink::loadCoefficients - Calculating Coeffs directly - not on RT Thread");
         // call static coeffmaker function dependng on filterType
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
@@ -251,15 +250,12 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewC
 {
     if (shouldComputeNewCoefficients)
     {
-        
         // Using Smoothers
         ParamType tempParams;
 
         tempParams = currentParams;
         tempParams.frequency = freqSmoother.getNextValue();
         tempParams.quality = qualitySmoother.getNextValue();
-        
-        DBG( juce::String(tempParams.frequency) );
 
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
@@ -267,7 +263,6 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::generateNewC
         }
 
         // Send Params to the FCG
-        DBG("FilterLink:generateNewCoefficients - Adding Coeffs to FCG");
         linkFCG.changeParameters(tempParams);
 
         // Before Leaving, reset flag
@@ -290,7 +285,6 @@ void FilterLink<FilterType, FifoDataType, ParamType, FunctionType>::performInner
     // Exit early if Params are bypassed
     if ( currentParams.bypassed )
     {
-        DBG("Filter Is Bypassed");
         return;
     }
     
