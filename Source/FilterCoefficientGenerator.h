@@ -60,7 +60,7 @@ struct FilterCoefficientGenerator : juce::Thread
                     if constexpr ( IsCutParameterType<ParamType>::value )
                     {
                         // Calc Cut Parameters
-                        auto cutCoeffArray = MakeFunction::calcCutCoefficients(params);
+                        auto cutCoeffArray = MakeFunction::calcCoefficients(params);
                         
                         if ( cutCoeffArray.size() > 0 )
                             coefficientsFifo.push(cutCoeffArray);
@@ -68,7 +68,7 @@ struct FilterCoefficientGenerator : juce::Thread
                     else
                     {
                         // Calc Filter Parameters
-                        auto filterCoeffs = MakeFunction::calcFilterCoefficients(params);
+                        auto filterCoeffs = MakeFunction::calcCoefficients(params);
                         
                         // Check if not null
                         if (filterCoeffs.get() != nullptr)
