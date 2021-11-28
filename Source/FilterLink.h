@@ -16,6 +16,7 @@
 #include "FilterParametersBase.h"
 #include "FilterCoefficientGenerator.h"
 #include "CoefficientsMaker.h"
+#include "Decibel.h"
 
 
 //=============================================================================
@@ -69,9 +70,9 @@ struct FilterLink
         }
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
-            if ( currentParams.gainInDb != gainSmoother.getTargetValue() )
+            if ( currentParams.gain != gainSmoother.getTargetValue() )
             {
-                gainSmoother.setTargetValue(currentParams.gainInDb);
+                gainSmoother.setTargetValue(currentParams.gain);
             }
         }
     }
@@ -87,7 +88,7 @@ struct FilterLink
         if constexpr (IsFilterParameterType<ParamType>::value)
         {
             gainSmoother.reset(sampleRate, rampTime);
-            gainSmoother.setCurrentAndTargetValue(currentParams.gainInDb);
+            gainSmoother.setCurrentAndTargetValue(currentParams.gain);
         }
     }
     
@@ -189,7 +190,7 @@ struct FilterLink
 
             if constexpr (IsFilterParameterType<ParamType>::value)
             {
-                tempParams.gainInDb = gainSmoother.getNextValue();
+                tempParams.gain = gainSmoother.getNextValue();
             }
 
             // Send Params to the FCG

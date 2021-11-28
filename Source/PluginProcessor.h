@@ -164,7 +164,7 @@ ParamType Pfmcpp_project11AudioProcessor::getParams (const int bandNum, const do
 
         if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(getGainParamName(bandNum))))
         {
-            params.gainInDb = p->get();
+            params.gain.setDb(p->get());
         }
     }
     

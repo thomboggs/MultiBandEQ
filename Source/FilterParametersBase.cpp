@@ -31,7 +31,7 @@ bool operator== (const FilterParameters& lhs, const FilterParameters& rhs)
     // check if base class members are the same
     if ( static_cast<const FilterParametersBase&>(lhs) == static_cast<const FilterParametersBase&>(rhs))
     {
-        return (lhs.filterType == rhs.filterType) && (lhs.gainInDb == rhs.gainInDb);
+        return (lhs.filterType == rhs.filterType) && (lhs.gain == rhs.gain);
     }
     // If base class parameters aren't equal, return false
     return false;

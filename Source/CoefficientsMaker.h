@@ -54,7 +54,7 @@ struct CoefficientsMaker
     
     static Coefficients calcCoefficients (const FilterParameters& filterParams)
     {
-        return calcCoefficientsHelper(filterParams.filterType, filterParams.frequency, filterParams.quality, filterParams.gainInDb, filterParams.sampleRate);
+        return calcCoefficientsHelper(filterParams.filterType, filterParams.frequency, filterParams.quality, filterParams.gain.getDb(), filterParams.sampleRate);
     }
     
     static juce::ReferenceCountedArray<IIRCoeffs> calcCoefficients (const HighCutLowCutParameters& cutParams)
