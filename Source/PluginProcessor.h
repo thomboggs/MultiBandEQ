@@ -103,23 +103,13 @@ private:
     
     Chain leftChain, rightChain;
 
-    
     void initializeFilters (const double sampleRate, const float rampTime);
     
     template <int Index, typename ParamType>
     void initializeFilter (const double sampleRate, const float rampTime);
     
-//    Fifo<juce::ReferenceCountedArray<CutCoeffs>, 32> LowCutFifo, HighCutFifo;
-//    Fifo<CoefficientsPtr, 32> FilterCoeffFifo;
-//    
-//    FilterCoefficientGenerator<CoefficientsPtr, FilterParameters, CoefficientsMaker<float>, 32> peakFilterFCG { FilterCoeffFifo , "Peak Filter Thread"};
-//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> lowCutFCG {LowCutFifo , "LowCut Thread" };
-//    FilterCoefficientGenerator<juce::ReferenceCountedArray<CutCoeffs>, HighCutLowCutParameters, CoefficientsMaker<float>, 32> highCutFCG {HighCutFifo , "HighCut Thread" };
-//    
-//    ReleasePool<CoefficientsPtr> deletionPool { };
-    
     template <typename ParamType>
-    ParamType getParams (const int bandNum);
+    ParamType getParams (const int bandNum, const double sampleRate);
     
     template <int Index>
     void setChainBypass(const bool isBypassed);
@@ -134,25 +124,6 @@ private:
     template <int Index>
     void updateSingleFilterState (const bool onRealTimeThread, const int chunkSize);
     
-//    template<int Index, typename ParamType, typename FCG>
-//    void updateFilterParams(ParamType& params, FCG& filterFCG);
-    
-//    void refreshFilters ();
-
-//    template<int Index, typename FifoType, typename Pool>
-//    void refreshCutFilter (FifoType& cutFifo, Pool& cutPool);
-//
-//    template<int Index, typename Link, typename ArrayType, typename Pool>
-//    void update(Link& link, ArrayType& tempArray, Pool& pool);
-//
-//    template<int Index, typename FifoType, typename Pool>
-//    void refreshFilter (FifoType& filterFifo, Pool& filterPool);
-    
-    // Test for FilterLink
-//    FilterLink<Filter, CoefficientsPtr, FilterParameters, CoefficientsMaker<float>> testLink;
-    
-    
-    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
 };
@@ -165,11 +136,11 @@ private:
 //==============================================================================
 
 template<typename ParamType>
-ParamType Pfmcpp_project11AudioProcessor::getParams (const int bandNum)
+ParamType Pfmcpp_project11AudioProcessor::getParams (const int bandNum, const double sampleRate)
 {
     ParamType params;
     
-    params.sampleRate = getSampleRate();
+    params.sampleRate = sampleRate;
     
     if constexpr (std::is_same_v<ParamType, HighCutLowCutParameters>)
     {
@@ -227,7 +198,7 @@ void Pfmcpp_project11AudioProcessor::setChainBypass(const bool isBypassed)
 template <int Index, typename ParamType>
 void Pfmcpp_project11AudioProcessor::initializeFilter (const double sampleRate, const float rampTime)
 {
-    auto tempCutParams = getParams<ParamType>(Index);
+    auto tempCutParams = getParams<ParamType>(Index, sampleRate);
     leftChain.get<Index>().initialize(tempCutParams, rampTime, false, sampleRate);
     rightChain.get<Index>().initialize(tempCutParams, rampTime, false, sampleRate);
     
@@ -237,17 +208,20 @@ void Pfmcpp_project11AudioProcessor::initializeFilter (const double sampleRate, 
 template <int Index, typename ParamType>
 void Pfmcpp_project11AudioProcessor::updateSingleFilterParams ()
 {
-    auto filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(Index)))->get();
-    if ( !filterBypassed )
-    {
-        setChainBypass<Index>(false);
-        leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
-        rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
-    }
-    else
-    {
-        setChainBypass<Index>(true);
-    }
+//    auto filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(Index)))->get();
+//    if ( !filterBypassed )
+//    {
+//        setChainBypass<Index>(false);
+//        leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
+//        rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
+//    }
+//    else
+//    {
+//        setChainBypass<Index>(true);
+//    }
+    auto sampleRate = getSampleRate();
+    leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index, sampleRate));
+    rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index, sampleRate));
 }
 
 template <int Index>
