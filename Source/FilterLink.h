@@ -152,12 +152,16 @@ struct FilterLink
         if ( fromFifo )
         {
     //        DBG("Attempting to Pull Coeffs From FIFO");
+            
             while ( linkFifo.getNumAvailableForReading() > 0 )
             {
+//                auto testNum = linkFifo.getNumAvailableForReading();
+//                jassert( testNum < 2 );
+//                DBG ( juce::String(testNum) );
     //            DBG("Successfully Pulled Coeff from FIFO");
                 FifoDataType ptr;
-                
-                if ( linkFifo.pull( ptr ) )
+//                if ( linkFifo.pull( ptr ) )
+                if ( linkFifo.exchange(std::move(ptr)) )
                 {
                     updateCoefficients(ptr);
                 }
