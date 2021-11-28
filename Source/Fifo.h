@@ -24,6 +24,9 @@ struct IsReferenceCountedObjectPtr : std::false_type { };
 template <typename T>
 struct IsReferenceCountedObjectPtr<juce::ReferenceCountedObjectPtr<T>> : std::true_type { };
 
+//template <typename T>
+//struct IsReferenceCountedObjectPtr<juce::ReferenceCountedArray<T>> : std::true_type { };
+
 // Check For Vector
 template <typename T>
 struct IsVector : std::false_type { };
