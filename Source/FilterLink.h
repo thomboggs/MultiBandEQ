@@ -155,12 +155,7 @@ struct FilterLink
             
             while ( linkFifo.getNumAvailableForReading() > 0 )
             {
-//                auto testNum = linkFifo.getNumAvailableForReading();
-//                jassert( testNum < 2 );
-//                DBG ( juce::String(testNum) );
-    //            DBG("Successfully Pulled Coeff from FIFO");
                 FifoDataType ptr;
-//                if ( linkFifo.pull( ptr ) )
                 if ( linkFifo.exchange(std::move(ptr)) )
                 {
                     updateCoefficients(ptr);
@@ -169,15 +164,7 @@ struct FilterLink
         }
         else
         {
-            // call static coeffmaker function dependng on filterType
-//            if constexpr (IsFilterParameterType<ParamType>::value)
-//            {
             updateCoefficients( FunctionType::calcCoefficients(currentParams) );
-//            }
-//            else
-//            {
-//                updateCoefficients( FunctionType::calcCutCoefficients(currentParams) );
-//            }
         }
     }
     

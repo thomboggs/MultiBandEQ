@@ -208,17 +208,6 @@ void Pfmcpp_project11AudioProcessor::initializeFilter (const double sampleRate, 
 template <int Index, typename ParamType>
 void Pfmcpp_project11AudioProcessor::updateSingleFilterParams ()
 {
-//    auto filterBypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(getBypassParamName(Index)))->get();
-//    if ( !filterBypassed )
-//    {
-//        setChainBypass<Index>(false);
-//        leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
-//        rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index));
-//    }
-//    else
-//    {
-//        setChainBypass<Index>(true);
-//    }
     auto sampleRate = getSampleRate();
     leftChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index, sampleRate));
     rightChain.get<Index>().performPreloopUpdate(getParams<ParamType>(Index, sampleRate));

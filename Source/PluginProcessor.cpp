@@ -271,25 +271,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcess
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
-    /*
-     I want to add the params for:
-        - 1 LowCut Filter
-            - Freq
-            - Byp
-            - Order
-            - IsLowCut = True
-        - 1 MultiType Filter
-            - Freq
-            - Byp
-            - Quality
-            - gain
-        - 1 HighCut Filter
-            - Freq
-            - Byp
-            - Order
-            - IsLowCut = False
-     */
-    
     for ( int i = 0; i < chainLength; ++i)
     {
         // Add Low Cut Params to layout
@@ -378,21 +359,6 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
                                                             stringArray,
                                                             0));
 }
-
-
-//void Pfmcpp_project11AudioProcessor::refreshFilters()
-//{
-//    // Low Cut
-//    refreshCutFilter<FilterPosition::LowCut> (LowCutFifo, deletionPool);
-//
-//    // Peak Filter
-//    refreshFilter<FilterPosition::Multi1> ( FilterCoeffFifo, deletionPool);
-//
-////    refreshFilter ( FilterCoeffFifo, deletionPool);
-//
-//    // High Cut
-//    refreshCutFilter<FilterPosition::HighCut> (HighCutFifo, deletionPool);
-//}
 
 
 //==============================================================================
