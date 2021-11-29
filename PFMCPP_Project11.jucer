@@ -4,6 +4,7 @@
               companyName="GCR Audio" jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="ORymcZ" name="Project11">
     <GROUP id="{A92DB368-5243-6129-F1D5-73D06AFB4761}" name="Source">
+      <FILE id="q0t6To" name="FilterLink.h" compile="0" resource="0" file="Source/FilterLink.h"/>
       <FILE id="Nl7HAR" name="FilterParametersBase.cpp" compile="1" resource="0"
             file="Source/FilterParametersBase.cpp"/>
       <FILE id="qLwdOk" name="ReleasePool.h" compile="0" resource="0" file="Source/ReleasePool.h"/>

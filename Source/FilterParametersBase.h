@@ -10,6 +10,7 @@
 
 #pragma once
 #include "FilterInfo.h"
+#include "Decibel.h"
 
 
 struct FilterParametersBase
@@ -28,7 +29,7 @@ struct FilterParameters : FilterParametersBase
 {
     FilterParameters () = default;
     FilterParameters ( float frequency, bool bypassed, float quality, double sampleRate, FilterInfo::FilterType filterType, float gainInDb) :
-        filterType(filterType), gainInDb(gainInDb)
+        filterType(filterType), gain(gainInDb)
     {
         this->frequency = frequency;
         this->bypassed = bypassed;
@@ -40,7 +41,7 @@ struct FilterParameters : FilterParametersBase
     
     // Member Variables
     FilterInfo::FilterType filterType { FilterInfo::FilterType::LowPass };
-    float gainInDb { 0 };
+    Decibel<float> gain { 0 };
 };
 
 struct HighCutLowCutParameters : FilterParametersBase

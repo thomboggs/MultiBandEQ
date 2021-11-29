@@ -26,15 +26,7 @@ Pfmcpp_project11AudioProcessor::Pfmcpp_project11AudioProcessor()
     
 #endif
 {
-//    fcgFilter("My Thread");
-//    using CutCoeffs = juce::dsp::IIR::Coefficients<float>;
-//    FilterCoefficientGenerator fcgFilter =
-//        FilterCoefficientGenerator<
-//            juce::ReferenceCountedArray<CutCoeffs>,
-//            HighCutLowCutParameters,
-//            CoefficientsMaker<float>,
-//            32>
-//        (lowCutFifo , "LowCut Thread");
+
 }
 
 Pfmcpp_project11AudioProcessor::~Pfmcpp_project11AudioProcessor()
@@ -113,6 +105,26 @@ void Pfmcpp_project11AudioProcessor::prepareToPlay (double sampleRate, int sampl
     
     leftChain.prepare(spec);
     rightChain.prepare(spec);
+    
+    // Initialize Filters
+    initializeFilters(sampleRate, 0.05f);
+    
+    // Reset Chains
+    leftChain.reset();
+    rightChain.reset();
+}
+
+
+void Pfmcpp_project11AudioProcessor::initializeFilters(const double sampleRate, const float rampTime)
+{
+    initializeFilter<0, HighCutLowCutParameters>(sampleRate, rampTime);
+    initializeFilter<1, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<2, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<3, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<4, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<5, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<6, FilterParameters>(sampleRate, rampTime);
+    initializeFilter<7, HighCutLowCutParameters>(sampleRate, rampTime);
 }
 
 void Pfmcpp_project11AudioProcessor::releaseResources()
@@ -157,27 +169,63 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     // This is here to avoid people getting screaming feedback
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
-    
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    updateParams();
-    
-    refreshFilters();
+    updateFilterParams();
 
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
-    
-    auto leftBlock = block.getSingleChannelBlock(0);
-    auto rightBlock = block.getSingleChannelBlock(1);
-    
-    juce::dsp::ProcessContextReplacing<float> leftContext (leftBlock);
-    juce::dsp::ProcessContextReplacing<float> rightContext (rightBlock);
-    
-    leftChain.process(leftContext);
-    rightChain.process(rightContext);
+
+    auto maxChunkSize = 32;
+    for (auto offset = 0; offset < block.getNumSamples();)
+    {
+        auto samplesToProcess = static_cast<int>(block.getNumSamples() - offset);
+        auto chunkSize = samplesToProcess > maxChunkSize ? maxChunkSize : samplesToProcess;
+
+        // Loop through filters and call performInnerLoopFilterUpdate()
+        updateFilterState(chunkSize);
+
+        // Process The Audio
+        auto subBlock = block.getSubBlock(offset, chunkSize);
+        auto leftSubBlock = subBlock.getSingleChannelBlock(0);
+        auto rightSubBlock = subBlock.getSingleChannelBlock(1);
+
+        juce::dsp::ProcessContextReplacing<float> leftContext (leftSubBlock);
+        juce::dsp::ProcessContextReplacing<float> rightContext (rightSubBlock);
+
+        leftChain.process(leftContext);
+        rightChain.process(rightContext);
+
+        // Update Offset
+        offset += chunkSize;
+    }
 }
 
+
+void Pfmcpp_project11AudioProcessor::updateFilterState(const int chunkSize)
+{
+    updateSingleFilterState<0>(true, chunkSize);
+    updateSingleFilterState<1>(true, chunkSize);
+    updateSingleFilterState<2>(true, chunkSize);
+    updateSingleFilterState<3>(true, chunkSize);
+    updateSingleFilterState<4>(true, chunkSize);
+    updateSingleFilterState<5>(true, chunkSize);
+    updateSingleFilterState<6>(true, chunkSize);
+    updateSingleFilterState<7>(true, chunkSize);
+}
+
+void Pfmcpp_project11AudioProcessor::updateFilterParams()
+{
+    updateSingleFilterParams<0, HighCutLowCutParameters>();
+    updateSingleFilterParams<1, FilterParameters>();
+    updateSingleFilterParams<2, FilterParameters>();
+    updateSingleFilterParams<3, FilterParameters>();
+    updateSingleFilterParams<4, FilterParameters>();
+    updateSingleFilterParams<5, FilterParameters>();
+    updateSingleFilterParams<6, FilterParameters>();
+    updateSingleFilterParams<7, HighCutLowCutParameters>();
+}
 
 //==============================================================================
 
@@ -214,32 +262,14 @@ void Pfmcpp_project11AudioProcessor::setStateInformation (const void* data, int 
     if ( tree.isValid() )
     {
         apvts.replaceState(tree);
-        // This updates the apvts. In the processBlock, any apvts changes will be automatically applied.
+        // Initialize Filters
+        initializeFilters(getSampleRate(), 0.05f);
     }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcessor::createParameterLayout ()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
-    
-    /*
-     I want to add the params for:
-        - 1 LowCut Filter
-            - Freq
-            - Byp
-            - Order
-            - IsLowCut = True
-        - 1 MultiType Filter
-            - Freq
-            - Byp
-            - Quality
-            - gain
-        - 1 HighCut Filter
-            - Freq
-            - Byp
-            - Order
-            - IsLowCut = False
-     */
     
     for ( int i = 0; i < chainLength; ++i)
     {
@@ -328,25 +358,6 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
                                                             getTypeParamName(filterNum),
                                                             stringArray,
                                                             0));
-}
-
-
-void Pfmcpp_project11AudioProcessor::refreshFilters()
-{
-    // Low Cut
-    refreshCutFilter<FilterPosition::LowCut> (leftLowCutFifo, leftChain, leftLowCutReleasePool);
-
-    refreshCutFilter<FilterPosition::LowCut> (rightLowCutFifo, rightChain, rightLowCutReleasePool);
-    
-    // Peak Filter
-    refreshFilter ( leftFilterCoeffFifo, leftChain.get<FilterPosition::Multi1>(), leftFilterReleasePool);
-    
-    refreshFilter ( rightFilterCoeffFifo, rightChain.get<FilterPosition::Multi1>(), rightFilterReleasePool);
-    
-    // High Cut
-    refreshCutFilter<FilterPosition::HighCut> (leftHighCutFifo, leftChain, leftHighCutReleasePool);
-
-    refreshCutFilter<FilterPosition::HighCut> (rightHighCutFifo, rightChain, rightHighCutReleasePool);
 }
 
 
