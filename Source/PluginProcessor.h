@@ -127,6 +127,10 @@ private:
     template <int Index>
     void updateSingleFilterState (const bool onRealTimeThread, const int chunkSize);
     
+    void updateTrimState();
+    
+    void processTrim(juce::dsp::Gain<float>& gain, juce::dsp::AudioBlock<float>& block);
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
 };

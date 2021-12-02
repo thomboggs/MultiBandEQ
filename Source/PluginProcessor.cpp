@@ -180,17 +180,14 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         buffer.clear (i, 0, buffer.getNumSamples());
     
     updateFilterParams();
+    
+    updateTrimState();
 
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
     
     // Process input Trim
-    juce::dsp::ProcessContextReplacing<float> inputTrimContext (block);
-    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Input Trim")))
-    {
-        inputTrim.setGainDecibels(p->get());
-    }
-    inputTrim.process(inputTrimContext);
+    processTrim(inputTrim, block);
 
     // Process Filters
     auto maxChunkSize = 32;
@@ -218,12 +215,7 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     }
     
     // Process Output Trim
-    juce::dsp::ProcessContextReplacing<float> outputTrimContext (block);
-    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Output Trim")))
-    {
-        outputTrim.setGainDecibels(p->get());
-    }
-    outputTrim.process(outputTrimContext);
+    processTrim(outputTrim, block);
 }
 
 
@@ -249,6 +241,28 @@ void Pfmcpp_project11AudioProcessor::updateFilterParams()
     updateSingleFilterParams<5, FilterParameters>();
     updateSingleFilterParams<6, FilterParameters>();
     updateSingleFilterParams<7, HighCutLowCutParameters>();
+}
+
+
+void Pfmcpp_project11AudioProcessor::updateTrimState()
+{
+    // Input Trim
+    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Input Trim")))
+    {
+        inputTrim.setGainDecibels(p->get());
+    }
+    
+    // Output Trim
+    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Output Trim")))
+    {
+        outputTrim.setGainDecibels(p->get());
+    }
+}
+
+void Pfmcpp_project11AudioProcessor::processTrim(juce::dsp::Gain<float>& gain, juce::dsp::AudioBlock<float>& block)
+{
+    juce::dsp::ProcessContextReplacing<float> trimContext (block);
+    gain.process(trimContext);
 }
 
 //==============================================================================
