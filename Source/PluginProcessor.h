@@ -67,6 +67,7 @@ public:
     // APVTS and Audio Parameter Creation
     static void createCutParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum, const bool isLowCut);
     static void createFilterParamas (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum);
+    static void createTrimParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout);
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
     
@@ -102,6 +103,8 @@ private:
     static const int chainLength { 8 };
     
     Chain leftChain, rightChain;
+    
+    juce::dsp::Gain<float> inputTrim, outputTrim;
 
     void initializeFilters (const double sampleRate, const float rampTime);
     
