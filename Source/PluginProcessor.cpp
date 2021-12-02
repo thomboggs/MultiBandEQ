@@ -101,7 +101,10 @@ void Pfmcpp_project11AudioProcessor::prepareToPlay (double sampleRate, int sampl
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
-    spec.numChannels = 1;
+    spec.numChannels = getTotalNumOutputChannels();
+    
+    inputTrim.prepare(spec);
+    outputTrim.prepare(spec);
     
     leftChain.prepare(spec);
     rightChain.prepare(spec);
@@ -173,10 +176,16 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         buffer.clear (i, 0, buffer.getNumSamples());
     
     updateFilterParams();
+    
+    updateTrimState();
 
     // Process The Chain
     juce::dsp::AudioBlock<float> block(buffer);
+    
+    // Process input Trim
+    processTrim(inputTrim, block);
 
+    // Process Filters
     auto maxChunkSize = 32;
     for (auto offset = 0; offset < block.getNumSamples();)
     {
@@ -200,6 +209,9 @@ void Pfmcpp_project11AudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         // Update Offset
         offset += chunkSize;
     }
+    
+    // Process Output Trim
+    processTrim(outputTrim, block);
 }
 
 
@@ -225,6 +237,28 @@ void Pfmcpp_project11AudioProcessor::updateFilterParams()
     updateSingleFilterParams<5, FilterParameters>();
     updateSingleFilterParams<6, FilterParameters>();
     updateSingleFilterParams<7, HighCutLowCutParameters>();
+}
+
+
+void Pfmcpp_project11AudioProcessor::updateTrimState()
+{
+    // Input Trim
+    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Input Trim")))
+    {
+        inputTrim.setGainDecibels(p->get());
+    }
+    
+    // Output Trim
+    if (auto* p = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Output Trim")))
+    {
+        outputTrim.setGainDecibels(p->get());
+    }
+}
+
+void Pfmcpp_project11AudioProcessor::processTrim(juce::dsp::Gain<float>& gain, juce::dsp::AudioBlock<float>& block)
+{
+    juce::dsp::ProcessContextReplacing<float> trimContext (block);
+    gain.process(trimContext);
 }
 
 //==============================================================================
@@ -270,6 +304,8 @@ void Pfmcpp_project11AudioProcessor::setStateInformation (const void* data, int 
 juce::AudioProcessorValueTreeState::ParameterLayout Pfmcpp_project11AudioProcessor::createParameterLayout ()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    
+    createTrimParams(layout);
     
     for ( int i = 0; i < chainLength; ++i)
     {
@@ -358,6 +394,22 @@ void Pfmcpp_project11AudioProcessor::createFilterParamas(juce::AudioProcessorVal
                                                             getTypeParamName(filterNum),
                                                             stringArray,
                                                             0));
+}
+
+
+void Pfmcpp_project11AudioProcessor::createTrimParams(juce::AudioProcessorValueTreeState::ParameterLayout& layout)
+{
+    // Input Trim
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Input Trim",
+                                                           "Input Trim",
+                                                           juce::NormalisableRange<float>(-12.f, 12.f, 0.5f, 1.f),
+                                                               0.f));
+    
+    // Output Trim
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Output Trim",
+                                                           "Output Trim",
+                                                           juce::NormalisableRange<float>(-12.f, 12.f, 0.5f, 1.f),
+                                                               0.f));
 }
 
 

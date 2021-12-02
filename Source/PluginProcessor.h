@@ -67,6 +67,7 @@ public:
     // APVTS and Audio Parameter Creation
     static void createCutParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum, const bool isLowCut);
     static void createFilterParamas (juce::AudioProcessorValueTreeState::ParameterLayout& layout, const int filterNum);
+    static void createTrimParams (juce::AudioProcessorValueTreeState::ParameterLayout& layout);
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout ();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Params", createParameterLayout() };
     
@@ -102,6 +103,8 @@ private:
     static const int chainLength { 8 };
     
     Chain leftChain, rightChain;
+    
+    juce::dsp::Gain<float> inputTrim, outputTrim;
 
     void initializeFilters (const double sampleRate, const float rampTime);
     
@@ -123,6 +126,10 @@ private:
     
     template <int Index>
     void updateSingleFilterState (const bool onRealTimeThread, const int chunkSize);
+    
+    void updateTrimState();
+    
+    void processTrim(juce::dsp::Gain<float>& gain, juce::dsp::AudioBlock<float>& block);
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmcpp_project11AudioProcessor)
