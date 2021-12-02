@@ -98,17 +98,13 @@ void Pfmcpp_project11AudioProcessor::changeProgramName (int index, const juce::S
 //==============================================================================
 void Pfmcpp_project11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    juce::dsp::ProcessSpec spec, stereoSpec;
+    juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
-    spec.numChannels = 1;
+    spec.numChannels = getTotalNumOutputChannels();
     
-    stereoSpec.maximumBlockSize = samplesPerBlock;
-    stereoSpec.sampleRate = sampleRate;
-    stereoSpec.numChannels = getTotalNumOutputChannels();
-    
-    inputTrim.prepare(stereoSpec);
-    outputTrim.prepare(stereoSpec);
+    inputTrim.prepare(spec);
+    outputTrim.prepare(spec);
     
     leftChain.prepare(spec);
     rightChain.prepare(spec);
