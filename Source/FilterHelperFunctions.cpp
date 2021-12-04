@@ -47,3 +47,8 @@ juce::String getBypassParamName(int filterNum)
 {
     return getParamPrefix(filterNum, "Bypass");
 }
+
+juce::String getOrderParamName(int filterNum)
+{
+    return getParamPrefix(filterNum, "Order");
+}

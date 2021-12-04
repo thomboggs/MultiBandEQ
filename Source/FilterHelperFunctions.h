@@ -18,3 +18,4 @@ juce::String getQualityParamName(int filterNum);
 juce::String getFreqParamName(int filterNum);
 juce::String getTypeParamName(int filterNum);
 juce::String getBypassParamName(int filterNum);
+juce::String getOrderParamName(int filterNum);
