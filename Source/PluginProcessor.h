@@ -151,7 +151,7 @@ ParamType Pfmcpp_project11AudioProcessor::getParams (const int bandNum, const do
     
     if constexpr (std::is_same_v<ParamType, HighCutLowCutParameters>)
     {
-        if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getQualityParamName(bandNum))))
+        if (auto* p = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getOrderParamName(bandNum))))
         {
             params.order = p->getIndex()+1;
         }

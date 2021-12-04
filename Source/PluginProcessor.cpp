@@ -342,6 +342,11 @@ void Pfmcpp_project11AudioProcessor::createCutParams(juce::AudioProcessorValueTr
                                                            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
                                                                 500.f));
     
+    layout.add(std::make_unique<juce::AudioParameterFloat>(getQualityParamName(filterNum),
+                                                           getQualityParamName(filterNum),
+                                                           juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+                                                               1.f));
+    
     layout.add(std::make_unique<juce::AudioParameterBool>(getTypeParamName(filterNum),
                                                           getTypeParamName(filterNum),
                                                           isLowCut));
@@ -354,8 +359,8 @@ void Pfmcpp_project11AudioProcessor::createCutParams(juce::AudioProcessorValueTr
         stringArray.add(juce::String(i));
     }
     
-    layout.add(std::make_unique<juce::AudioParameterChoice>(getQualityParamName(filterNum),
-                                                            getQualityParamName(filterNum),
+    layout.add(std::make_unique<juce::AudioParameterChoice>(getOrderParamName(filterNum),
+                                                            getOrderParamName(filterNum),
                                                             stringArray,
                                                             0));
 }
