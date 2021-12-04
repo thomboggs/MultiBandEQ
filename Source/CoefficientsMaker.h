@@ -59,10 +59,92 @@ struct CoefficientsMaker
     
     static juce::ReferenceCountedArray<IIRCoeffs> calcCoefficients (const HighCutLowCutParameters& cutParams)
     {
+        // Replaced Direct calls to butterworthFilterDesign with the following functions with customQ
         if (cutParams.isLowcut)
-            return juce::dsp::FilterDesign<FloatType>::designIIRHighpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
+            return customQLowCutCoefficients(cutParams.frequency, cutParams.sampleRate, cutParams.order, cutParams.quality);
+
+        return customQHighCutCoefficients(cutParams.frequency, cutParams.sampleRate, cutParams.order, cutParams.quality);
         
-        return juce::dsp::FilterDesign<FloatType>::designIIRLowpassHighOrderButterworthMethod(cutParams.frequency, cutParams.sampleRate, cutParams.order);
+        
+        
     }
+    
+    static juce::ReferenceCountedArray<IIRCoeffs> customQHighCutCoefficients (const FloatType frequency, const double sampleRate, const int order, const FloatType targetQ)
+    {
+        using namespace juce;
+        
+        jassert (sampleRate > 0);
+        jassert (frequency > 0 && frequency <= sampleRate * 0.5);
+        jassert (order > 0);
+
+        ReferenceCountedArray<dsp::IIR::Coefficients<FloatType>> arrayFilters;
+
+        auto qFactor = pow( targetQ * sqrt(2.0), 1.0 / (FloatType)order );
+
+        DBG(qFactor);
+        
+        if (order % 2 == 1)
+        {
+            arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeFirstOrderLowPass (sampleRate, frequency));
+
+            for (int i = 0; i < order / 2; ++i)
+            {
+                auto Q = qFactor / (2.0 * std::cos ((i + 1.0) * MathConstants<double>::pi / order));
+                arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeLowPass (sampleRate, frequency,
+                                                                              static_cast<FloatType> (Q)));
+            }
+        }
+        else
+        {
+            for (int i = 0; i < order / 2; ++i)
+            {
+                auto Q = qFactor / (2.0 * std::cos ((2.0 * i + 1.0) * MathConstants<double>::pi / (order * 2.0)));
+                arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeLowPass (sampleRate, frequency,
+                                                                              static_cast<FloatType> (Q)));
+            }
+        }
+
+        return arrayFilters;
+      
+    }
+    
+    static juce::ReferenceCountedArray<IIRCoeffs> customQLowCutCoefficients (const FloatType frequency, const double sampleRate, const int order, const FloatType targetQ)
+    {
+        using namespace juce;
+        
+        jassert (sampleRate > 0);
+        jassert (frequency > 0 && frequency <= sampleRate * 0.5);
+        jassert (order > 0);
+
+        ReferenceCountedArray<dsp::IIR::Coefficients<FloatType>> arrayFilters;
+
+        auto qFactor = pow( targetQ * sqrt(2.0), 1.0 / (FloatType)order );
+        
+        DBG(qFactor);
+        
+        if (order % 2 == 1)
+        {
+            arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeFirstOrderHighPass (sampleRate, frequency));
+        
+            for (int i = 0; i < order / 2; ++i)
+            {
+                auto Q = qFactor / (2.0 * std::cos ((i + 1.0) * MathConstants<double>::pi / order));
+                arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeHighPass (sampleRate, frequency,
+                                                                               static_cast<FloatType> (Q)));
+            }
+        }
+        else
+        {
+            for (int i = 0; i < order / 2; ++i)
+            {
+                auto Q = qFactor / (2.0 * std::cos ((2.0 * i + 1.0) * MathConstants<double>::pi / (order * 2.0)));
+                arrayFilters.add (*dsp::IIR::Coefficients<FloatType>::makeHighPass (sampleRate, frequency,
+                                                                               static_cast<FloatType> (Q)));
+            }
+        }
+
+        return arrayFilters;
+    }
+        
 };
 
